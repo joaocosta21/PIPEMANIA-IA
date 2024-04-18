@@ -1,3 +1,4 @@
-FB\tVB\tVE\n
-BD\tBE\tLV\n
-FC\tFC\tFC\n
+FB VB VE
+BD BE LV
+FC FC FC
+
