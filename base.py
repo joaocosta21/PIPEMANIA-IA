@@ -24,15 +24,18 @@ class Board:
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """ Devolve os valores imediatamente acima e abaixo,
         respectivamente. """
-        # TODO
-        pass
+        if row == 0:
+            return ("W", self.grid[row+1][col])
+        if row == self.dim - 1:
+            return (self.grid[row-1][col], "W")
+        return (self.grid[row-1][col], self.grid[row+1][col])
 
     def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
         """ Devolve os valores imediatamente à esquerda e à direita,
         respectivamente. """
-        if row == 0:
+        if col == 0:
             return ("W", self.grid[row][col+1])
-        if row == self.dim - 1:
+        if col == self.dim - 1:
             return (self.grid[row][col-1], "W")
         return (self.grid[row][col-1], self.grid[row][col+1])
 
@@ -100,3 +103,4 @@ class PipeMania(Problem):
 board = parse_instance()
 board.print()
 print(board.get_value(2,2))
+print(board.adjacent_vertical_values(1,1))
