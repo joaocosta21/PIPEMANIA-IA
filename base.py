@@ -19,6 +19,7 @@ class Board:
     
     def __init__(self, grid) -> None:
         self.grid = grid
+        self.dim = len(grid) 
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """ Devolve os valores imediatamente acima e abaixo,
@@ -29,8 +30,11 @@ class Board:
     def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
         """ Devolve os valores imediatamente à esquerda e à direita,
         respectivamente. """
-        # TODO
-        pass
+        if row == 0:
+            return ("W", self.grid[row][col+1])
+        if row == self.dim - 1:
+            return (self.grid[row][col-1], "W")
+        return (self.grid[row][col-1], self.grid[row][col+1])
 
     def get_value(self, row:int, col:int) -> (str):
         """ Devolve o valor atual"""
