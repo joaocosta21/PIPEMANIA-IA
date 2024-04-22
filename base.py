@@ -1,5 +1,5 @@
 from sys import stdin
-
+#python3 base.py < inst.txt
 class PipeManiaState:
     state_id = 0
     
