@@ -34,7 +34,7 @@ class Board:
 
     def get_value(self, row:int, col:int) -> (str):
         """ Devolve o valor atual"""
-        
+        return self.grid[row][col] 
 
     def print(self):
         """ Imprime o estado atual da grelha interna """
