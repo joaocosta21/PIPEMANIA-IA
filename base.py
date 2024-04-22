@@ -34,8 +34,7 @@ class Board:
 
     def get_value(self, row:int, col:int) -> (str):
         """ Devolve o valor atual"""
-        # TODO
-        pass
+        
 
     def print(self):
         """ Imprime o estado atual da grelha interna """
@@ -61,7 +60,8 @@ def parse_instance():
 
     # Iterate over each line and split it by '\t' to get the individual values
     for line in lines:
-        values.extend(line.split('\t'))
+        line = line.split()
+        values.append(line)
 
     return Board(values)
     
@@ -95,3 +95,4 @@ class PipeMania(Problem):
 
 board = parse_instance()
 board.print()
+print(board.get_value(2,2))
