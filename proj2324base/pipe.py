@@ -132,6 +132,7 @@ if __name__ == "__main__":
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
     board = Board.parse_instance()
-    board.print()
-    print(board.get_value(2,2))
-    print(board.adjacent_vertical_values(1,1))
+    print(board.adjacent_vertical_values(0, 0))
+    print(board.adjacent_horizontal_values(0, 0))
+    print(board.adjacent_vertical_values(1, 1))
+    print(board.adjacent_horizontal_values(1, 1))
