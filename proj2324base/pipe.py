@@ -6,6 +6,7 @@
 # 00000 Nome1
 # 00000 Nome2
 
+import copy as copy
 import sys
 from search import (
     Problem,
@@ -16,7 +17,14 @@ from search import (
     greedy_search,
     recursive_best_first_search,
 )
+final = ["FC","FD","FB","FE"]
+bif = ["BC","BD","BB","BE"]
+volta = ["VC","VD","VB","VE"]
+lig = ["LH","LV"]
 
+PIECE_ROTATIONS = {
+    "FC": ["FB", "BB", "BE", "BD", "VB", "VE", "VD", "LV"],
+}
 
 class PipeManiaState:
     state_id = 0
@@ -29,8 +37,6 @@ class PipeManiaState:
     def __lt__(self, other):
         return self.id < other.id
 
-    # TODO: outros metodos da classe
-
 
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
@@ -41,23 +47,28 @@ class Board:
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
         return self.grid[row][col] 
+    
+    def set_value(self, row: int, col: int, value: str) -> None:
+        """Atribui o valor na respetiva posição do tabuleiro."""
+        self.grid[row][col] = value
+        
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
         respectivamente."""
         if row == 0:
-            return ("W", self.grid[row+1][col])
+            return (None, self.grid[row+1][col])
         if row == self.dim - 1:
-            return (self.grid[row-1][col], "W")
+            return (self.grid[row-1][col], None)
         return (self.grid[row-1][col], self.grid[row+1][col])
 
     def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
         if col == 0:
-            return ("W", self.grid[row][col+1])
+            return (None, self.grid[row][col+1])
         if col == self.dim - 1:
-            return (self.grid[row][col-1], "W")
+            return (self.grid[row][col-1], None)
         return (self.grid[row][col-1], self.grid[row][col+1])
     
     def print(self):
@@ -93,22 +104,41 @@ class Board:
 class PipeMania(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
-        # TODO
-        pass
-
+        self.initial = PipeManiaState(board)
+    
+    def update_pos_in(self,state: PipeManiaState):
+        board: Board = state.board
+        
+        
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
-        # TODO
-        pass
+        action = (0,0,1)
+        return action
 
     def result(self, state: PipeManiaState, action):
         """Retorna o estado resultante de executar a 'action' sobre
         'state' passado como argumento. A ação a executar deve ser uma
         das presentes na lista obtida pela execução de
         self.actions(state)."""
-        # TODO
-        pass
+        
+        statee = copy.deepcopy(state)
+        
+        piece = statee.board.get_value(action[0],action[1])
+        if piece in final:
+            position = final.index(piece)
+            statee.board.set_value(action[0],action[1],final[(position + action[2]) % 4])
+        if piece in bif:
+            position = bif.index(piece)
+            statee.board.set_value(action[0],action[1],bif[(position + action[2]) % 4])
+        if piece in volta:
+            position = volta.index(piece)
+            statee.board.set_value(action[0],action[1],volta[(position + action[2]) % 4])
+        if piece in lig:
+            position = lig.index(piece)
+            statee.board.set_value(action[0],action[1],lig[(position + action[2]) % 2])
+        statee.board.print()
+        return statee.board
 
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
@@ -132,7 +162,8 @@ if __name__ == "__main__":
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
     board = Board.parse_instance()
-    print(board.adjacent_vertical_values(0, 0))
-    print(board.adjacent_horizontal_values(0, 0))
-    print(board.adjacent_vertical_values(1, 1))
-    print(board.adjacent_horizontal_values(1, 1))
+    pipemania = PipeMania(board)
+    initial_state = PipeManiaState(board)
+    pipemania.result(initial_state, (0,0,3))
+    # Mostrar valor na posição (2, 2):
+    print(initial_state.board.get_value(2, 2))
