@@ -56,7 +56,6 @@ class Board:
     def set_value(self, row: int, col: int, value: str) -> None:
         """Atribui o valor na respetiva posição do tabuleiro."""
         self.grid[row][col] = value
-        
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
@@ -105,7 +104,6 @@ class Board:
 
     # TODO: outros metodos da classe
 
-
 class PipeMania(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
@@ -133,7 +131,6 @@ class PipeMania(Problem):
                 elif i == board.dim - 1 and PIECE_ROTATIONS[piece]["RIGHT"]:
                         print("HI")
         board.print()
-        
         
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
