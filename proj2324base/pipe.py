@@ -23,7 +23,12 @@ volta = ["VC","VD","VB","VE"]
 lig = ["LH","LV"]
 
 PIECE_ROTATIONS = {
-    "FC": ["FB", "BB", "BE", "BD", "VB", "VE", "VD", "LV"],
+    "FC": {
+            "UP": ["FB", "BB", "BE", "BD", "VB", "VE", "VD", "LV"],
+            "DOWN": [],
+            "LEFT": [],
+            "RIGHT": []
+        },
 }
 
 class PipeManiaState:
@@ -108,6 +113,26 @@ class PipeMania(Problem):
     
     def update_pos_in(self,state: PipeManiaState):
         board: Board = state.board
+        for j in range(board.dim):
+            for i in range(board.dim):
+                piece = board.get_value(i,j)
+                if j == 0 and i == 0 and PIECE_ROTATIONS[piece]["UP"] and PIECE_ROTATIONS[piece]["LEFT"]:
+                        print("HI")
+                elif j == 0 and i == board.dim - 1 and PIECE_ROTATIONS[piece]["UP"] and PIECE_ROTATIONS[piece]["RIGHT"]:
+                        print("HI")
+                elif j == board.dim - 1 and i == 0 and PIECE_ROTATIONS[piece]["DOWN"] and PIECE_ROTATIONS[piece]["LEFT"]:
+                        print("HI")
+                elif j == board.dim - 1 and i == board.dim - 1 and PIECE_ROTATIONS[piece]["DOWN"] and PIECE_ROTATIONS[piece]["RIGHT"]:
+                        print("HI")
+                elif j == 0 and PIECE_ROTATIONS[piece]["UP"]:
+                        print("HI")
+                elif j == board.dim - 1 and PIECE_ROTATIONS[piece]["DOWN"]:
+                        print("HI")
+                elif i == 0 and PIECE_ROTATIONS[piece]["LEFT"]:
+                        print("HI")
+                elif i == board.dim - 1 and PIECE_ROTATIONS[piece]["RIGHT"]:
+                        print("HI")
+        board.print()
         
         
     def actions(self, state: PipeManiaState):
@@ -164,6 +189,7 @@ if __name__ == "__main__":
     board = Board.parse_instance()
     pipemania = PipeMania(board)
     initial_state = PipeManiaState(board)
+    pipemania.update_pos_in(initial_state)
     pipemania.result(initial_state, (0,0,3))
     # Mostrar valor na posição (2, 2):
     print(initial_state.board.get_value(2, 2))
