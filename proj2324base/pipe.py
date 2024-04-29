@@ -115,6 +115,7 @@ class PipeMania(Problem):
             for i in range(board.dim):
                 piece = board.get_value(i,j)
                 adjacent = [board.adjacent_vertical_values(i,j), board.adjacent_horizontal_values(i,j)] # 0 up 1 down 
+                
                 # if j == 0 and i == 0 and PIECE_ROTATIONS[piece]["UP"] and PIECE_ROTATIONS[piece]["LEFT"]:
                 #         print("HI")
                 # elif j == 0 and i == board.dim - 1 and PIECE_ROTATIONS[piece]["UP"] and PIECE_ROTATIONS[piece]["RIGHT"]:
