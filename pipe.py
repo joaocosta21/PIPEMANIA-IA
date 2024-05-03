@@ -203,3 +203,6 @@ if __name__ == "__main__":
     new_board = pipemania.result(pipemania.initial, action)
     # Mostrar valor na posição (2, 2):
     print(pipemania.initial.board.get_value(2, 2))
+    
+#a criar o problem como e que dou o estado final
+# como e que faco a arvore de pesquisa
