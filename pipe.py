@@ -50,7 +50,7 @@ class Board:
     def __init__(self, grid) -> None:
         self.grid = grid
         self.dim = len(grid) # dimensão do tabuleiro
-    
+        
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
         return self.grid[row][col] 
@@ -143,8 +143,11 @@ class PipeMania(Problem):
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
-        state.num_pieces.pop(0)
-        action = (0,0,3)
+        piece = state.num_pieces.pop(0)
+        row = (piece - 1) // state.board.dim
+        column = (piece - 1) % state.board.dim
+        
+        action = [(row,column,0), (row,column,1), (row,column,2), (row,column,3)]
         return action
 
     def result(self, state: PipeManiaState, action):
@@ -175,8 +178,10 @@ class PipeMania(Problem):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
-        # TODO
-        pass
+        if Problem.goal_test(self, state):
+            return True
+        else:
+            return False
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
