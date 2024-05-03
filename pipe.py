@@ -110,35 +110,6 @@ class PipeMania(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
         self.initial = PipeManiaState(board)
-    
-    
-    # def update_pos_in(self,state: PipeManiaState):
-    #     board: Board = state.board
-        # for j in range(board.dim):
-        #     for i in range(board.dim):
-        #         piece = board.get_value(i,j)
-                
-        #         vertical_tuple = board.adjacent_vertical_values(i, j)
-        #         horizontal_tuple = board.adjacent_horizontal_values(i, j)
-        #         if j == 0 and i == 0 and PIECE_ROTATIONS[piece]["UP"] and PIECE_ROTATIONS[piece]["LEFT"]:
-        #             print("HI")
-        #         elif j == 0 and i == board.dim - 1 and PIECE_ROTATIONS[piece]["UP"] and PIECE_ROTATIONS[piece]["RIGHT"]:
-        #             print("HI")
-        #         elif j == board.dim - 1 and i == 0 and PIECE_ROTATIONS[piece]["DOWN"] and PIECE_ROTATIONS[piece]["LEFT"]:
-        #             print("HI")
-        #         elif j == board.dim - 1 and i == board.dim - 1 and PIECE_ROTATIONS[piece]["DOWN"] and PIECE_ROTATIONS[piece]["RIGHT"]:
-        #             print("HI")
-        #         elif j == 0 and PIECE_ROTATIONS[piece]["UP"]:
-        #             print("HI")
-        #         elif j == board.dim - 1 and PIECE_ROTATIONS[piece]["DOWN"]:
-        #             print("HI")
-        #         elif i == 0 and PIECE_ROTATIONS[piece]["LEFT"]:
-        #             print("HI")
-        #         elif i == board.dim - 1 and PIECE_ROTATIONS[piece]["RIGHT"]:
-        #             print("HI")
-        #         elif vertical_tuple[0] not in PIECE_ROTATIONS[piece]["UP"]:
-        #             print("HI")
-        # board.print()
         
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
@@ -178,7 +149,9 @@ class PipeMania(Problem):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
-        if Problem.goal_test(self, state):
+        
+        problem = Problem(self.initial, goal_board)
+        if problem.goal_test(self, state):
             return True
         else:
             return False
@@ -191,18 +164,45 @@ class PipeMania(Problem):
     # TODO: outros metodos da classe
 
 
+def parse_instance2(file_path: str):
+    with open(file_path, 'r') as file:
+        # Read the contents of the file and split it into lines
+        lines = file.read().strip().split('\n')
+
+    # Initialize an empty list to store the values
+    values = []
+
+    # Iterate over each line and split it by '\t' to get the individual values
+    for line in lines:
+        line = line.split()
+        values.append(line)
+    print(values)
+
 if __name__ == "__main__":
     # TODO:
     # Ler o ficheiro do standard input,
     # Usar uma técnica de procura para resolver a instância,
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
-    board = Board.parse_instance()
-    pipemania = PipeMania(board)
+    
+    file_path = "testpipe 1-9/test-04.out"  # Replace this with the actual file path
+    goal_board = parse_instance2(file_path)
+        
+    goal_board = goal_board
+    
+    
+    initial_board = Board.parse_instance()
+    
+    # Create a PipeMania instance with the initial state and goal board
+    pipemania = PipeMania(initial_board)
+    
     action = pipemania.actions(pipemania.initial)  # Pass pipemania.initial instead of board
+    
     new_board = pipemania.result(pipemania.initial, action)
+    
+    solution_node = depth_first_tree_search(pipemania)
     # Mostrar valor na posição (2, 2):
     print(pipemania.initial.board.get_value(2, 2))
     
-#a criar o problem como e que dou o estado final
+#a criar o problem como e que dou o estado final sendo que eu nao sei
 # como e que faco a arvore de pesquisa
