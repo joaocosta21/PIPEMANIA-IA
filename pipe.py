@@ -22,20 +22,22 @@ bif = ["BC","BD","BB","BE"]
 volta = ["VC","VD","VB","VE"]
 lig = ["LH","LV"]
 
-PIECE_ROTATIONS = {
-    "FC": {
-            "UP": ["FB", "BB", "BE", "BD", "VB", "VE", "VD", "LV"],
-            "DOWN": [],
-            "LEFT": [],
-            "RIGHT": []
-        },
-}
+# PIECE_ROTATIONS = {
+#     "FC": {
+#             "UP": ["FB", "BB", "BE", "BD", "VB", "VE", "VD", "LV"],
+#             "DOWN": [],
+#             "LEFT": [],
+#             "RIGHT": []
+#         },
+# }
 
 class PipeManiaState:
     state_id = 0
 
     def __init__(self, board):
         self.board = board
+        self.num_pieces = [ i for i in range(1, board.dim**2+1)]
+        print(self.num_pieces)
         self.id = PipeManiaState.state_id
         PipeManiaState.state_id += 1
 
@@ -110,38 +112,39 @@ class PipeMania(Problem):
         self.initial = PipeManiaState(board)
     
     
-    def update_pos_in(self,state: PipeManiaState):
-        board: Board = state.board
-        for j in range(board.dim):
-            for i in range(board.dim):
-                piece = board.get_value(i,j)
+    # def update_pos_in(self,state: PipeManiaState):
+    #     board: Board = state.board
+        # for j in range(board.dim):
+        #     for i in range(board.dim):
+        #         piece = board.get_value(i,j)
                 
-                vertical_tuple = board.adjacent_vertical_values(i, j)
-                horizontal_tuple = board.adjacent_horizontal_values(i, j)
-                if j == 0 and i == 0 and PIECE_ROTATIONS[piece]["UP"] and PIECE_ROTATIONS[piece]["LEFT"]:
-                    print("HI")
-                elif j == 0 and i == board.dim - 1 and PIECE_ROTATIONS[piece]["UP"] and PIECE_ROTATIONS[piece]["RIGHT"]:
-                    print("HI")
-                elif j == board.dim - 1 and i == 0 and PIECE_ROTATIONS[piece]["DOWN"] and PIECE_ROTATIONS[piece]["LEFT"]:
-                    print("HI")
-                elif j == board.dim - 1 and i == board.dim - 1 and PIECE_ROTATIONS[piece]["DOWN"] and PIECE_ROTATIONS[piece]["RIGHT"]:
-                    print("HI")
-                elif j == 0 and PIECE_ROTATIONS[piece]["UP"]:
-                    print("HI")
-                elif j == board.dim - 1 and PIECE_ROTATIONS[piece]["DOWN"]:
-                    print("HI")
-                elif i == 0 and PIECE_ROTATIONS[piece]["LEFT"]:
-                    print("HI")
-                elif i == board.dim - 1 and PIECE_ROTATIONS[piece]["RIGHT"]:
-                    print("HI")
-                elif vertical_tuple[0] not in PIECE_ROTATIONS[piece]["UP"]:
-                    print("HI")
-        board.print()
+        #         vertical_tuple = board.adjacent_vertical_values(i, j)
+        #         horizontal_tuple = board.adjacent_horizontal_values(i, j)
+        #         if j == 0 and i == 0 and PIECE_ROTATIONS[piece]["UP"] and PIECE_ROTATIONS[piece]["LEFT"]:
+        #             print("HI")
+        #         elif j == 0 and i == board.dim - 1 and PIECE_ROTATIONS[piece]["UP"] and PIECE_ROTATIONS[piece]["RIGHT"]:
+        #             print("HI")
+        #         elif j == board.dim - 1 and i == 0 and PIECE_ROTATIONS[piece]["DOWN"] and PIECE_ROTATIONS[piece]["LEFT"]:
+        #             print("HI")
+        #         elif j == board.dim - 1 and i == board.dim - 1 and PIECE_ROTATIONS[piece]["DOWN"] and PIECE_ROTATIONS[piece]["RIGHT"]:
+        #             print("HI")
+        #         elif j == 0 and PIECE_ROTATIONS[piece]["UP"]:
+        #             print("HI")
+        #         elif j == board.dim - 1 and PIECE_ROTATIONS[piece]["DOWN"]:
+        #             print("HI")
+        #         elif i == 0 and PIECE_ROTATIONS[piece]["LEFT"]:
+        #             print("HI")
+        #         elif i == board.dim - 1 and PIECE_ROTATIONS[piece]["RIGHT"]:
+        #             print("HI")
+        #         elif vertical_tuple[0] not in PIECE_ROTATIONS[piece]["UP"]:
+        #             print("HI")
+        # board.print()
         
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
-        action = (0,0,1)
+        state.num_pieces.pop(0)
+        action = (0,0,3)
         return action
 
     def result(self, state: PipeManiaState, action):
@@ -166,7 +169,7 @@ class PipeMania(Problem):
             position = lig.index(piece)
             statee.board.set_value(action[0],action[1],lig[(position + action[2]) % 2])
         statee.board.print()
-        return statee.board
+        return statee
 
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
@@ -191,8 +194,7 @@ if __name__ == "__main__":
     # Imprimir para o standard output no formato indicado.
     board = Board.parse_instance()
     pipemania = PipeMania(board)
-    initial_state = PipeManiaState(board)
-    pipemania.update_pos_in(initial_state)
-    pipemania.result(initial_state, (0,0,3))
+    action = pipemania.actions(pipemania.initial)  # Pass pipemania.initial instead of board
+    new_board = pipemania.result(pipemania.initial, action)
     # Mostrar valor na posição (2, 2):
-    print(initial_state.board.get_value(2, 2))
+    print(pipemania.initial.board.get_value(2, 2))
