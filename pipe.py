@@ -129,19 +129,21 @@ class PipeMania(Problem):
         
         statee = copy.deepcopy(state)
         
-        piece = statee.board.get_value(action[0],action[1])
+        pos_x, pos_y, rotation = action
+        
+        piece = statee.board.get_value(pos_x,pos_y)
         if piece in final:
             position = final.index(piece)
-            statee.board.set_value(action[0],action[1],final[(position + action[2]) % 4])
+            statee.board.set_value(pos_x,pos_y,final[(position + rotation) % 4])
         if piece in bif:
             position = bif.index(piece)
-            statee.board.set_value(action[0],action[1],bif[(position + action[2]) % 4])
+            statee.board.set_value(pos_x,pos_y,bif[(position + rotation) % 4])
         if piece in volta:
             position = volta.index(piece)
-            statee.board.set_value(action[0],action[1],volta[(position + action[2]) % 4])
+            statee.board.set_value(pos_x,pos_y,volta[(position + rotation) % 4])
         if piece in lig:
             position = lig.index(piece)
-            statee.board.set_value(action[0],action[1],lig[(position + action[2]) % 2])
+            statee.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
         statee.board.print()
         return statee
 
@@ -189,7 +191,6 @@ if __name__ == "__main__":
     goal_board = parse_instance2(file_path)
         
     goal_board = goal_board
-    
     
     initial_board = Board.parse_instance()
     
