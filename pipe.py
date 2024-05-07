@@ -17,18 +17,60 @@ from search import (
     greedy_search,
     recursive_best_first_search,
 )
+
+class Pipe:
+    def __init__(self, top=False, right=False, bottom=False, left=False):
+        self.connections = {'top': top, 'right': right, 'bottom': bottom, 'left': left}
+
+    def __str__(self):
+        return str(self.connections)
+
+
 final = ["FC","FD","FB","FE"]
 bif = ["BC","BD","BB","BE"]
 volta = ["VC","VD","VB","VE"]
 lig = ["LH","LV"]
 
-# PIECE_ROTATIONS = {
-#     "FC": {
-#             "UP": ["FB", "BB", "BE", "BD", "VB", "VE", "VD", "LV"],
-#             "DOWN": [],
-#             "LEFT": [],
-#             "RIGHT": []
-#         },
+PIECE = {
+    "FC": Pipe(top = True),
+    "FD": Pipe(right = True),
+    "FB": Pipe(bottom = True),
+    "FE": Pipe(left = True),
+    "BC": Pipe(left = True, top = True, right = True),
+    "BD": Pipe(right = True, bottom = True, top = True),
+    "BB": Pipe(bottom = True, left = True, right = True),
+    "BE": Pipe(left = True, top = True, bottom = True),
+    "VC": Pipe(left = True, top = True),
+    "VD": Pipe(right = True, top = True),
+    "VB": Pipe(bottom = True, right = True),
+    "VE": Pipe(left = True, bottom = True),
+    "LH": Pipe(left = True, right = True),
+    "LV": Pipe(top = True, bottom = True)
+}
+
+# PIECE = {
+#     "final": {
+#         "FC": Pipe(top = True),
+#         "FD": Pipe(right = True),
+#         "FB": Pipe(bottom = True),
+#         "FE": Pipe(left = True)
+#     },
+#     "bif": {
+#         "BC": Pipe(left = True, top = True, right = True),
+#         "BD": Pipe(right = True, bottom = True, top = True),
+#         "BB": Pipe(bottom = True, left = True, right = True),
+#         "BE": Pipe(left = True, top = True, bottom = True)
+#     },
+#     "volta": {
+#         "VC": Pipe(left = True, top = True),
+#         "VD": Pipe(right = True, top = True),
+#         "VB": Pipe(bottom = True, right = True),
+#         "VE": Pipe(left = True, bottom = True)
+#     },
+#     "lig": {
+#         "LH": Pipe(left = True, right = True),
+#         "LV": Pipe(top = True, bottom = True)
+#     }
 # }
 
 class PipeManiaState:
@@ -104,7 +146,34 @@ class Board:
 
         return Board(values)
 
-    # TODO: outros metodos da classe
+    def correct_pos(self):
+        count = 0
+        for i in range(self.dim):
+            for j in range(self.dim):
+                piece = self.get_value(i, j)
+                print(piece)
+                if piece is None:  # Skip if the current position is empty
+                    continue
+                
+                # Get adjacent pieces
+                up, down = self.adjacent_vertical_values(i, j)
+                left, right = self.adjacent_horizontal_values(i, j)
+                
+                 # Check if the piece connections match its adjacent pieces
+                up_condition = (up is None and not PIECE[piece].connections['top']) or \
+                            (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom'])
+                down_condition = (down is None and not PIECE[piece].connections['bottom']) or \
+                                (down is not None and PIECE[piece].connections['bottom'] == PIECE[down].connections['top'])
+                left_condition = (left is None and not PIECE[piece].connections['left']) or \
+                                (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right'])
+                right_condition = (right is None and not PIECE[piece].connections['right']) or \
+                                (right is not None and PIECE[piece].connections['right'] == PIECE[right].connections['left'])
+                
+                if up_condition and down_condition and left_condition and right_condition:
+                    count += 1
+                    print(count)
+        return count
+
 
 class PipeMania(Problem):
     def __init__(self, board: Board):
@@ -135,13 +204,13 @@ class PipeMania(Problem):
         if piece in final:
             position = final.index(piece)
             statee.board.set_value(pos_x,pos_y,final[(position + rotation) % 4])
-        if piece in bif:
+        elif piece in bif:
             position = bif.index(piece)
             statee.board.set_value(pos_x,pos_y,bif[(position + rotation) % 4])
-        if piece in volta:
+        elif piece in volta:
             position = volta.index(piece)
             statee.board.set_value(pos_x,pos_y,volta[(position + rotation) % 4])
-        if piece in lig:
+        elif piece in lig:
             position = lig.index(piece)
             statee.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
         statee.board.print()
@@ -152,11 +221,7 @@ class PipeMania(Problem):
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
         
-        problem = Problem(self.initial, goal_board)
-        if problem.goal_test(self, state):
-            return True
-        else:
-            return False
+        return state.board.correct_pos() == state.board.dim**2
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -187,15 +252,14 @@ if __name__ == "__main__":
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
     
-    file_path = "testpipe 1-9/test-04.out"  # Replace this with the actual file path
-    goal_board = parse_instance2(file_path)
-        
-    goal_board = goal_board
-    
     initial_board = Board.parse_instance()
+    
     
     # Create a PipeMania instance with the initial state and goal board
     pipemania = PipeMania(initial_board)
+    
+    correct = pipemania.goal_test(pipemania.initial)
+    print(correct)
     
     action = pipemania.actions(pipemania.initial)  # Pass pipemania.initial instead of board
     
