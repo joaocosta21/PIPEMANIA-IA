@@ -223,8 +223,7 @@ class PipeMania(Problem):
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
-        # TODO
-        pass
+        return node.state.board.correct_pos()
 
     # TODO: outros metodos da classe
 
