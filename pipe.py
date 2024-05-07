@@ -79,7 +79,7 @@ class PipeManiaState:
     def __init__(self, board):
         self.board = board
         self.num_pieces = [ i for i in range(1, board.dim**2+1)]
-        print(self.num_pieces)
+        # print(self.num_pieces)
         self.id = PipeManiaState.state_id
         PipeManiaState.state_id += 1
 
@@ -151,7 +151,6 @@ class Board:
         for i in range(self.dim):
             for j in range(self.dim):
                 piece = self.get_value(i, j)
-                print(piece)
                 if piece is None:  # Skip if the current position is empty
                     continue
                 
@@ -171,7 +170,6 @@ class Board:
                 
                 if up_condition and down_condition and left_condition and right_condition:
                     count += 1
-                    print(count)
         return count
 
 
@@ -258,16 +256,12 @@ if __name__ == "__main__":
     # Create a PipeMania instance with the initial state and goal board
     pipemania = PipeMania(initial_board)
     
-    correct = pipemania.goal_test(pipemania.initial)
-    print(correct)
+
+    # action = pipemania.actions(pipemania.initial)  # Pass pipemania.initial instead of board
     
-    action = pipemania.actions(pipemania.initial)  # Pass pipemania.initial instead of board
-    
-    new_board = pipemania.result(pipemania.initial, action)
+    # new_board = pipemania.result(pipemania.initial, action)
     
     solution_node = depth_first_tree_search(pipemania)
     # Mostrar valor na posição (2, 2):
-    print(pipemania.initial.board.get_value(2, 2))
-    
-#a criar o problem como e que dou o estado final sendo que eu nao sei
-# como e que faco a arvore de pesquisa
+    solution_node.state.board.print()
+# como e que faco a arvore de pesquisa correr
