@@ -1,17 +1,3 @@
-# pipe.py: Template para implementação do projeto de Inteligência Artificial 2023/2024.
-# Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
-# Além das funções e classes sugeridas, podem acrescentar outras que considerem pertinentes.
-
-# Grupo 00:
-# 00000 Nome1
-# 00000 Nome2
-
-import time
-import psutil
-
-start_time = time.time()
-start_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Initialize start_memory using psutil
-
 import copy as copy
 import sys
 from search import (
@@ -185,14 +171,19 @@ class PipeMania(Problem):
         # Get adjacent pieces for the current position
         up, down = board.adjacent_vertical_values(row, column)
         left, right = board.adjacent_horizontal_values(row, column)
-
+        
+        down_condition = True
+        right_condition = True
+        
         up_condition = (up is None and not PIECE[piece].connections['top']) or \
                     (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom'])
-        down_condition = not (down is None and PIECE[piece].connections['bottom'])
+        if row == board.dim - 1:
+            down_condition = not (PIECE[piece].connections['bottom'])
         left_condition = (left is None and not PIECE[piece].connections['left']) or \
                         (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right'])
-        right_condition = not (right is None and PIECE[piece].connections['right'])
-        
+        if column == board.dim - 1:
+            right_condition = not (PIECE[piece].connections['right'])
+            
         # Check if all conditions are met
         if up_condition and down_condition and left_condition and right_condition:
             return True
@@ -261,7 +252,8 @@ class PipeMania(Problem):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
-        
+        if state.num_pieces != []:
+            return False
         return state.board.correct_pos() == state.board.dim**2
 
     def h(self, node: Node):
@@ -287,8 +279,3 @@ if __name__ == "__main__":
     solution = solution_node.state.board.grid
     for row in solution:
         print('\t'.join(row))
-        
-    end_time = time.time()
-    end_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Retrieve end_memory using psutil
-    print(f"Execution time: {end_time - start_time} seconds")
-    print(f"Memory usage: {end_memory - start_memory} MB")

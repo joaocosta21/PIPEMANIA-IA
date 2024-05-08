@@ -18,15 +18,20 @@ from search import (
     greedy_search,
     recursive_best_first_search,
 )
+
 class Pipe:
     def __init__(self, top=False, right=False, bottom=False, left=False):
         self.connections = {'top': top, 'right': right, 'bottom': bottom, 'left': left}
+
     def __str__(self):
         return str(self.connections)
+
+
 final = ["FC","FD","FB","FE"]
 bif = ["BC","BD","BB","BE"]
 volta = ["VC","VD","VB","VE"]
 lig = ["LH","LV"]
+
 PIECE = {
     "FC": Pipe(top = True),
     "FD": Pipe(right = True),
@@ -55,6 +60,8 @@ class PipeManiaState:
 
     def __lt__(self, other):
         return self.id < other.id
+
+
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
     def __init__(self, grid) -> None:
@@ -68,6 +75,7 @@ class Board:
     def set_value(self, row: int, col: int, value: str) -> None:
         """Atribui o valor na respetiva posição do tabuleiro."""
         self.grid[row][col] = value
+
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
         respectivamente."""
@@ -76,6 +84,7 @@ class Board:
         if row == self.dim - 1:
             return (self.grid[row-1][col], None)
         return (self.grid[row-1][col], self.grid[row+1][col])
+
     def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
@@ -88,23 +97,30 @@ class Board:
     def print(self):
         """ Imprime o estado atual da grelha interna """
         print(self.grid)
+
     @staticmethod
     def parse_instance():
         """Lê o test do standard input (stdin) que é passado como argumento
         e retorna uma instância da classe Board.
+
         Por exemplo:
             $ python3 pipe.py < test-01.txt
+
             > from sys import stdin
             > line = stdin.readline().split()
         """
         lines = sys.stdin.read().strip().split('\n')
+
         # Initialize an empty list to store the values
         values = []
+
         # Iterate over each line and split it by '\t' to get the individual values
         for line in lines:
             line = line.split()
             values.append(line)
+
         return Board(values)
+
     def correct_pos(self):
         count = 0
         for i in range(self.dim):
@@ -112,40 +128,110 @@ class Board:
                 piece = self.get_value(i, j)
                 if piece is None:  # Skip if the current position is empty
                     continue
-                
+                    
                 # Get adjacent pieces
                 up, down = self.adjacent_vertical_values(i, j)
                 left, right = self.adjacent_horizontal_values(i, j)
                 
-                 # Check if the piece connections match its adjacent pieces
-                up_condition = (up is None and not PIECE[piece].connections['top']) or \
-                            (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom'])
-                down_condition = (down is None and not PIECE[piece].connections['bottom']) or \
-                                (down is not None and PIECE[piece].connections['bottom'] == PIECE[down].connections['top'])
-                left_condition = (left is None and not PIECE[piece].connections['left']) or \
-                                (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right'])
-                right_condition = (right is None and not PIECE[piece].connections['right']) or \
-                                (right is not None and PIECE[piece].connections['right'] == PIECE[right].connections['left'])
-                
-                if up_condition and down_condition and left_condition and right_condition:
+                # Check if the piece is correct
+                if Board.is_piece_correct(piece, up, down, left, right):
                     count += 1
         return count
+    
+    def is_piece_correct(piece, up, down, left, right):
+        """
+        Check if a single piece is correctly connected with its adjacent pieces.
+
+        Args:
+            piece: The value of the current piece.
+            up: The value of the piece above the current piece.
+            down: The value of the piece below the current piece.
+            left: The value of the piece to the left of the current piece.
+            right: The value of the piece to the right of the current piece.
+
+        Returns:
+            True if the piece is correctly connected, False otherwise.
+        """
+        # Check connection conditions
+        up_condition = (up is None and not PIECE[piece].connections['top']) or \
+                    (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom'])
+        down_condition = (down is None and not PIECE[piece].connections['bottom']) or \
+                        (down is not None and PIECE[piece].connections['bottom'] == PIECE[down].connections['top'])
+        left_condition = (left is None and not PIECE[piece].connections['left']) or \
+                        (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right'])
+        right_condition = (right is None and not PIECE[piece].connections['right']) or \
+                        (right is not None and PIECE[piece].connections['right'] == PIECE[right].connections['left'])
+
+        # Check if all conditions are met
+        if up_condition and down_condition and left_condition and right_condition:
+            return True
+        else:
+            return False
+
+
+
 class PipeMania(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
         self.initial = PipeManiaState(board)
         
+    def correct_pos(self, board: Board, row: int, column: int, piece: str) -> bool:
+        """Check if the piece at the given position is in a correct position."""
+        # Get adjacent pieces for the current position
+        up, down = board.adjacent_vertical_values(row, column)
+        left, right = board.adjacent_horizontal_values(row, column)
+        
+        down_condition = True
+        right_condition = True
+        
+        up_condition = (up is None and not PIECE[piece].connections['top']) or \
+                    (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom'])
+        if row == board.dim - 1:
+            down_condition = not (PIECE[piece].connections['bottom'])
+        left_condition = (left is None and not PIECE[piece].connections['left']) or \
+                        (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right'])
+        if column == board.dim - 1:
+            right_condition = not (PIECE[piece].connections['right'])
+            
+        # Check if all conditions are met
+        if up_condition and down_condition and left_condition and right_condition:
+            return True
+        else:
+            return False
+        
+
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
         if state.num_pieces == []:
             return []
+        
         piece = state.num_pieces.pop(0)
         row = (piece - 1) // state.board.dim
         column = (piece - 1) % state.board.dim
         
-        action = [(row,column,0), (row,column,1), (row,column,2), (row,column,3)]
-        return action
+        valid_actions = []
+        for rotation in range(4):
+            rotated_piece = self.rotate_piece(state.board.get_value(row, column), rotation)
+            if self.correct_pos(state.board, row, column, rotated_piece):
+                valid_actions.append((row, column, rotation))
+        
+        return valid_actions
+
+
+    def rotate_piece(self, piece: str, rotation: int) -> str:
+        """Rotate a piece by the specified number of clockwise rotations."""
+        if piece in final:
+            return final[(final.index(piece) + rotation) % 4]
+        elif piece in bif:
+            return bif[(bif.index(piece) + rotation) % 4]
+        elif piece in volta:
+            return volta[(volta.index(piece) + rotation) % 4]
+        elif piece in lig:
+            return lig[(lig.index(piece) + rotation) % 2]
+        else:
+            return piece
+
     def result(self, state: PipeManiaState, action):
         """Retorna o estado resultante de executar a 'action' sobre
         'state' passado como argumento. A ação a executar deve ser uma
@@ -175,8 +261,10 @@ class PipeMania(Problem):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
-        
+        if state.num_pieces != []:
+            return False
         return state.board.correct_pos() == state.board.dim**2
+
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
         return node.state.board.correct_pos()
@@ -189,14 +277,14 @@ if __name__ == "__main__":
     # Usar uma técnica de procura para resolver a instância,
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
-
+    
     initial_board = Board.parse_instance()
-
+    
     # Create a PipeMania instance with the initial state and goal board
     pipemania = PipeMania(initial_board)
-
+    
     solution_node = depth_first_tree_search(pipemania)
-    # Mostrar valor na posição (2, 2):
+    
     solution = solution_node.state.board.grid
     for row in solution:
         print('\t'.join(row))
