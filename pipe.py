@@ -6,6 +6,12 @@
 # 00000 Nome1
 # 00000 Nome2
 
+import time
+import psutil
+
+start_time = time.time()
+start_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Initialize start_memory using psutil
+
 import copy as copy
 import sys
 from search import (
@@ -48,38 +54,12 @@ PIECE = {
     "LV": Pipe(top = True, bottom = True)
 }
 
-# PIECE = {
-#     "final": {
-#         "FC": Pipe(top = True),
-#         "FD": Pipe(right = True),
-#         "FB": Pipe(bottom = True),
-#         "FE": Pipe(left = True)
-#     },
-#     "bif": {
-#         "BC": Pipe(left = True, top = True, right = True),
-#         "BD": Pipe(right = True, bottom = True, top = True),
-#         "BB": Pipe(bottom = True, left = True, right = True),
-#         "BE": Pipe(left = True, top = True, bottom = True)
-#     },
-#     "volta": {
-#         "VC": Pipe(left = True, top = True),
-#         "VD": Pipe(right = True, top = True),
-#         "VB": Pipe(bottom = True, right = True),
-#         "VE": Pipe(left = True, bottom = True)
-#     },
-#     "lig": {
-#         "LH": Pipe(left = True, right = True),
-#         "LV": Pipe(top = True, bottom = True)
-#     }
-# }
-
 class PipeManiaState:
     state_id = 0
 
     def __init__(self, board):
         self.board = board
         self.num_pieces = [ i for i in range(1, board.dim**2+1)]
-        # print(self.num_pieces)
         self.id = PipeManiaState.state_id
         PipeManiaState.state_id += 1
 
@@ -181,6 +161,8 @@ class PipeMania(Problem):
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
+        if state.num_pieces == []:
+            return []
         piece = state.num_pieces.pop(0)
         row = (piece - 1) // state.board.dim
         column = (piece - 1) % state.board.dim
@@ -211,7 +193,6 @@ class PipeMania(Problem):
         elif piece in lig:
             position = lig.index(piece)
             statee.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
-        statee.board.print()
         return statee
 
     def goal_test(self, state: PipeManiaState):
@@ -227,21 +208,6 @@ class PipeMania(Problem):
 
     # TODO: outros metodos da classe
 
-
-def parse_instance2(file_path: str):
-    with open(file_path, 'r') as file:
-        # Read the contents of the file and split it into lines
-        lines = file.read().strip().split('\n')
-
-    # Initialize an empty list to store the values
-    values = []
-
-    # Iterate over each line and split it by '\t' to get the individual values
-    for line in lines:
-        line = line.split()
-        values.append(line)
-    print(values)
-
 if __name__ == "__main__":
     # TODO:
     # Ler o ficheiro do standard input,
@@ -251,16 +217,16 @@ if __name__ == "__main__":
     
     initial_board = Board.parse_instance()
     
-    
     # Create a PipeMania instance with the initial state and goal board
     pipemania = PipeMania(initial_board)
     
-
-    # action = pipemania.actions(pipemania.initial)  # Pass pipemania.initial instead of board
-    
-    # new_board = pipemania.result(pipemania.initial, action)
-    
     solution_node = depth_first_tree_search(pipemania)
     # Mostrar valor na posição (2, 2):
-    solution_node.state.board.print()
-# como e que faco a arvore de pesquisa correr
+    solution = solution_node.state.board.grid
+    for row in solution:
+        print('\t'.join(row))
+        
+    end_time = time.time()
+    end_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Retrieve end_memory using psutil
+    print(f"Execution time: {end_time - start_time} seconds")
+    print(f"Memory usage: {end_memory - start_memory} MB")
