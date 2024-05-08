@@ -176,24 +176,23 @@ class PipeMania(Problem):
         das presentes na lista obtida pela execução de
         self.actions(state)."""
         
-        statee = copy.deepcopy(state)
-        
         pos_x, pos_y, rotation = action
         
-        piece = statee.board.get_value(pos_x,pos_y)
+        piece = state.board.get_value(pos_x,pos_y)
         if piece in final:
             position = final.index(piece)
-            statee.board.set_value(pos_x,pos_y,final[(position + rotation) % 4])
+            state.board.set_value(pos_x,pos_y,final[(position + rotation) % 4])
         elif piece in bif:
             position = bif.index(piece)
-            statee.board.set_value(pos_x,pos_y,bif[(position + rotation) % 4])
+            state.board.set_value(pos_x,pos_y,bif[(position + rotation) % 4])
         elif piece in volta:
             position = volta.index(piece)
-            statee.board.set_value(pos_x,pos_y,volta[(position + rotation) % 4])
+            state.board.set_value(pos_x,pos_y,volta[(position + rotation) % 4])
         elif piece in lig:
             position = lig.index(piece)
-            statee.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
-        return statee
+            state.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
+            
+        return state
 
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
