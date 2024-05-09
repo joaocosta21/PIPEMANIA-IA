@@ -257,6 +257,34 @@ class PipeMania(Problem):
             position = lig.index(piece)
             statee.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
         return statee
+    
+    def search(self, state: PipeManiaState):
+        board = state.board
+        dim = board.dim
+        visited_positions = set()
+
+        # Perform depth-first traversal starting from the first piece
+        frontier = [(0, 0)]  # Start from the top-left corner
+        while frontier:
+            row, col = frontier.pop()
+            piece = board.get_value(row, col)
+            if (row, col) in visited_positions:
+                continue  # Skip if the position has been visited already
+            visited_positions.add((row, col))
+            
+            # Add adjacent positions to the frontier based on connections
+            connections = PIECE[piece].connections
+            if connections['top'] and row > 0:
+                frontier.append((row - 1, col))
+            if connections['right'] and col < dim - 1:
+                frontier.append((row, col + 1))
+            if connections['bottom'] and row < dim - 1:
+                frontier.append((row + 1, col))
+            if connections['left'] and col > 0:
+                frontier.append((row, col - 1))
+
+        # Check if all positions on the board are visited
+        return len(visited_positions) == dim**2
 
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
@@ -264,7 +292,10 @@ class PipeMania(Problem):
         estão preenchidas de acordo com as regras do problema."""
         if state.num_pieces != []:
             return False
-        return state.board.correct_pos() == state.board.dim**2
+        if state.board.correct_pos() == state.board.dim**2:
+            print(self.search(state))
+            return self.search(state)
+            
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -330,6 +361,7 @@ if __name__ == "__main__":
     solution_node = depth_first_tree_search(pipemania)
     
     solution = solution_node.state.board.grid
+    
     for row in solution:
         print('\t'.join(row))
 
