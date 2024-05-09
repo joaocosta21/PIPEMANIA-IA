@@ -49,6 +49,7 @@ PIECE = {
     "LV": Pipe(top = True, bottom = True)
 }
 
+
 class PipeManiaState:
     state_id = 0
 
@@ -211,13 +212,13 @@ class PipeMania(Problem):
         column = (piece - 1) % state.board.dim
         
         valid_actions = []
+        piece_on_board = state.board.get_value(row, column)
         for rotation in range(4):
-            rotated_piece = self.rotate_piece(state.board.get_value(row, column), rotation)
+            rotated_piece = self.rotate_piece(piece_on_board, rotation)
             if self.correct_pos(state.board, row, column, rotated_piece):
                 valid_actions.append((row, column, rotation))
-        
+                
         return valid_actions
-
 
     def rotate_piece(self, piece: str, rotation: int) -> str:
         """Rotate a piece by the specified number of clockwise rotations."""
@@ -245,7 +246,7 @@ class PipeMania(Problem):
         piece = statee.board.get_value(pos_x,pos_y)
         if piece in final:
             position = final.index(piece)
-            statee.board.set_value(pos_x,pos_y,final[(position + rotation) % 4])
+            statee.board.set_value(pos_x,pos_y,final[(position + rotation ) % 4])
         elif piece in bif:
             position = bif.index(piece)
             statee.board.set_value(pos_x,pos_y,bif[(position + rotation) % 4])
@@ -269,7 +270,48 @@ class PipeMania(Problem):
         """Função heuristica utilizada para a procura A*."""
         return node.state.board.correct_pos()
 
-    # TODO: outros metodos da classe
+    def primeira_procura(self):
+        dim = self.initial.board.dim
+        for i in range(dim):
+            for j in range(dim):
+                piece = self.initial.board.get_value(i, j)
+                # Set initial pieces based on their positions
+                if i == 0:
+                    if j == 0:
+                        if piece[0] == "V":
+                            self.initial.board.set_value(i, j, "VB")
+                    elif j == dim - 1:
+                        if piece[0] == "V":
+                            self.initial.board.set_value(i, j, "VE")
+                    else:
+                        if piece[0] == "B":
+                            self.initial.board.set_value(i, j, "BB")
+                        elif piece[0] == "L":
+                            self.initial.board.set_value(i, j, "LH")
+                elif i == dim - 1:
+                    if j == 0:
+                        if piece[0] == "V":
+                            self.initial.board.set_value(i, j, "VD")
+                    elif j == dim - 1:
+                        if piece[0] == "V":
+                            self.initial.board.set_value(i, j, "VC")
+                    else:
+                        if piece[0] == "B":
+                            self.initial.board.set_value(i, j, "BC")
+                        elif piece[0] == "L":
+                            self.initial.board.set_value(i, j, "LH")
+                else:
+                    if j == 0:
+                        if piece[0] == "B":
+                            self.initial.board.set_value(i, j, "BD")
+                        elif piece[0] == "L":
+                            self.initial.board.set_value(i, j, "LV")
+                    elif j == dim - 1:
+                        if piece[0] == "B":
+                            self.initial.board.set_value(i, j, "BE")
+                        elif piece[0] == "L":
+                            self.initial.board.set_value(i, j, "LV")
+        return self
 
 if __name__ == "__main__":
     # TODO:
@@ -282,6 +324,8 @@ if __name__ == "__main__":
     
     # Create a PipeMania instance with the initial state and goal board
     pipemania = PipeMania(initial_board)
+    
+    pipemania = pipemania.primeira_procura() #nao poupa quase tempo nenhum
     
     solution_node = depth_first_tree_search(pipemania)
     
