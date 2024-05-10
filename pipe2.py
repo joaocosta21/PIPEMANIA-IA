@@ -223,13 +223,13 @@ class PipeMania(Problem):
     def rotate_piece(self, piece: str, rotation: int) -> str:
         """Rotate a piece by the specified number of clockwise rotations."""
         if piece in final:
-            return final[(final.index(piece) + rotation) % 4]
+            return final[(final.index(piece) - rotation) % 4]
         elif piece in bif:
-            return bif[(bif.index(piece) + rotation) % 4]
+            return bif[(bif.index(piece) - rotation) % 4]
         elif piece in volta:
-            return volta[(volta.index(piece) + rotation) % 4]
+            return volta[(volta.index(piece) - rotation) % 4]
         elif piece in lig:
-            return lig[(lig.index(piece) + rotation) % 2]
+            return lig[(lig.index(piece) - rotation) % 2]
         else:
             return piece
 
@@ -246,16 +246,16 @@ class PipeMania(Problem):
         piece = statee.board.get_value(pos_x,pos_y)
         if piece in final:
             position = final.index(piece)
-            statee.board.set_value(pos_x,pos_y,final[(position + rotation ) % 4])
+            statee.board.set_value(pos_x,pos_y,final[(position - rotation ) % 4])
         elif piece in bif:
             position = bif.index(piece)
-            statee.board.set_value(pos_x,pos_y,bif[(position + rotation) % 4])
+            statee.board.set_value(pos_x,pos_y,bif[(position - rotation) % 4])
         elif piece in volta:
             position = volta.index(piece)
-            statee.board.set_value(pos_x,pos_y,volta[(position + rotation) % 4])
+            statee.board.set_value(pos_x,pos_y,volta[(position - rotation) % 4])
         elif piece in lig:
             position = lig.index(piece)
-            statee.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
+            statee.board.set_value(pos_x,pos_y,lig[(position - rotation) % 2])
         return statee
     
     def search(self, state: PipeManiaState):
@@ -292,9 +292,9 @@ class PipeMania(Problem):
         estão preenchidas de acordo com as regras do problema."""
         if state.num_pieces != []:
             return False
-        if state.board.correct_pos() == state.board.dim**2:
-            print(self.search(state))
-            return self.search(state)
+        # if state.board.correct_pos() == state.board.dim**2:
+        #     return self.search(state)
+        return state.board.correct_pos() == state.board.dim**2
             
 
     def h(self, node: Node):
