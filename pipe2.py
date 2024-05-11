@@ -185,12 +185,10 @@ class PipeMania(Problem):
         down_condition = True
         right_condition = True
         
-        up_condition = (up is None and not PIECE[piece].connections['top']) or \
-                    (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom'])
+        up_condition = (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom']) or (up is None and not PIECE[piece].connections['top'])
         if row == board.dim - 1:
             down_condition = not (PIECE[piece].connections['bottom'])
-        left_condition = (left is None and not PIECE[piece].connections['left']) or \
-                        (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right'])
+        left_condition = (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right']) or (left is None and not PIECE[piece].connections['left'])
         if column == board.dim - 1:
             right_condition = not (PIECE[piece].connections['right'])
             
@@ -214,6 +212,7 @@ class PipeMania(Problem):
         valid_actions = []
         piece_on_board = state.board.get_value(row, column)
         for rotation in range(4):
+            # rotation -= 1 # demora muito depois
             rotated_piece = self.rotate_piece(piece_on_board, rotation)
             if self.correct_pos(state.board, row, column, rotated_piece):
                 valid_actions.append((row, column, rotation))
