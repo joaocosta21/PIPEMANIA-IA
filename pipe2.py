@@ -225,8 +225,6 @@ class PipeMania(Problem):
         if state.num_pieces == []:
             return []
         
-        #TODO: ver pq e que 225 nao da
-        
         piece = state.num_pieces.pop(-1)
         row = (piece - 1) // state.board.dim
         column = (piece - 1) % state.board.dim
@@ -278,34 +276,6 @@ class PipeMania(Problem):
             position = lig.index(piece)
             statee.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
         return statee
-    
-    def search(self, state: PipeManiaState):
-        board = state.board
-        dim = board.dim
-        visited_positions = set()
-
-        # Perform depth-first traversal starting from the first piece
-        frontier = [(0, 0)]  # Start from the top-left corner
-        while frontier:
-            row, col = frontier.pop()
-            piece = board.get_value(row, col)
-            if (row, col) in visited_positions:
-                continue  # Skip if the position has been visited already
-            visited_positions.add((row, col))
-            
-            # Add adjacent positions to the frontier based on connections
-            connections = PIECE[piece].connections
-            if connections['top'] and row > 0:
-                frontier.append((row - 1, col))
-            if connections['right'] and col < dim - 1:
-                frontier.append((row, col + 1))
-            if connections['bottom'] and row < dim - 1:
-                frontier.append((row + 1, col))
-            if connections['left'] and col > 0:
-                frontier.append((row, col - 1))
-
-        # Check if all positions on the board are visited
-        return len(visited_positions) == dim**2
 
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
@@ -333,37 +303,49 @@ class PipeMania(Problem):
                     if j == 0:
                         if piece[0] == "V":
                             self.initial.board.set_value(i, j, "VB")
+                            self.initial.num_pieces.remove(1)
                     elif j == dim - 1:
                         if piece[0] == "V":
                             self.initial.board.set_value(i, j, "VE")
+                            self.initial.num_pieces.remove(dim)
                     else:
                         if piece[0] == "B":
                             self.initial.board.set_value(i, j, "BB")
+                            self.initial.num_pieces.remove(j + 1)
                         elif piece[0] == "L":
                             self.initial.board.set_value(i, j, "LH")
+                            self.initial.num_pieces.remove(j + 1)
                 elif i == dim - 1:
                     if j == 0:
                         if piece[0] == "V":
                             self.initial.board.set_value(i, j, "VD")
+                            self.initial.num_pieces.remove(dim * (dim - 1) + 1)
                     elif j == dim - 1:
                         if piece[0] == "V":
                             self.initial.board.set_value(i, j, "VC")
+                            self.initial.num_pieces.remove(dim * dim)
                     else:
                         if piece[0] == "B":
                             self.initial.board.set_value(i, j, "BC")
+                            self.initial.num_pieces.remove(dim * (dim - 1) + j + 1)
                         elif piece[0] == "L":
                             self.initial.board.set_value(i, j, "LH")
+                            self.initial.num_pieces.remove(dim * (dim - 1) + j + 1)
                 else:
                     if j == 0:
                         if piece[0] == "B":
                             self.initial.board.set_value(i, j, "BD")
+                            self.initial.num_pieces.remove(i * dim + 1)
                         elif piece[0] == "L":
                             self.initial.board.set_value(i, j, "LV")
+                            self.initial.num_pieces.remove(i * dim + 1)
                     elif j == dim - 1:
                         if piece[0] == "B":
                             self.initial.board.set_value(i, j, "BE")
+                            self.initial.num_pieces.remove(i * dim + dim)
                         elif piece[0] == "L":
                             self.initial.board.set_value(i, j, "LV")
+                            self.initial.num_pieces.remove(i * dim + dim)
         return self
 
 if __name__ == "__main__":
