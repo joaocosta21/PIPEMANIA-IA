@@ -124,21 +124,25 @@ class Board:
 
     def correct_pos(self):
         count = 0
+        # break_flag = False
         for i in range(self.dim):
             for j in range(self.dim):
                 piece = self.get_value(i, j)
-                if piece is None:  # Skip if the current position is empty
-                    continue
-                    
+
                 # Get adjacent pieces
                 up, down = self.adjacent_vertical_values(i, j)
                 left, right = self.adjacent_horizontal_values(i, j)
-                
+
                 # Check if the piece is correct
                 if Board.is_piece_correct(piece, up, down, left, right):
                     count += 1
+            #     else:
+            #         break_flag = True
+            #         break  # Break out of inner loop
+            # if break_flag:
+            #     break
         return count
-    
+
     def is_piece_correct(piece, up, down, left, right):
         """
         Check if a single piece is correctly connected with its adjacent pieces.
