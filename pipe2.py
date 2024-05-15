@@ -186,21 +186,37 @@ class PipeMania(Problem):
         up, down = board.adjacent_vertical_values(row, column)
         left, right = board.adjacent_horizontal_values(row, column)
         
-        down_condition = True
-        right_condition = True
+        up_condition = True
+        left_condition = True
         
-        up_condition = (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom']) or (up is None and not PIECE[piece].connections['top'])
-        if row == board.dim - 1:
-            down_condition = not (PIECE[piece].connections['bottom'])
-        left_condition = (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right']) or (left is None and not PIECE[piece].connections['left'])
-        if column == board.dim - 1:
-            right_condition = not (PIECE[piece].connections['right'])
+        down_condition = (down is not None and PIECE[piece].connections['bottom'] == PIECE[down].connections['top']) or (down is None and not PIECE[piece].connections['bottom'])
+        if row == 0:
+            up_condition = not (PIECE[piece].connections['top'])
+        right_condition = (right is not None and PIECE[piece].connections['right'] == PIECE[right].connections['left']) or (right is None and not PIECE[piece].connections['right'])
+        if column == 0:
+            left_condition = not (PIECE[piece].connections['left'])
             
         # Check if all conditions are met
         if up_condition and down_condition and left_condition and right_condition:
             return True
         else:
             return False
+        
+        # down_condition = True
+        # right_condition = True
+        
+        # up_condition = (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom']) or (up is None and not PIECE[piece].connections['top'])
+        # if row == board.dim - 1:
+        #     down_condition = not (PIECE[piece].connections['bottom'])
+        # left_condition = (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right']) or (left is None and not PIECE[piece].connections['left'])
+        # if column == board.dim - 1:
+        #     right_condition = not (PIECE[piece].connections['right'])
+            
+        # # Check if all conditions are met
+        # if up_condition and down_condition and left_condition and right_condition:
+        #     return True
+        # else:
+        #     return False
         
 
     def actions(self, state: PipeManiaState):
@@ -209,14 +225,16 @@ class PipeMania(Problem):
         if state.num_pieces == []:
             return []
         
-        piece = state.num_pieces.pop(0)
+        #TODO: ver pq e que 225 nao da
+        
+        piece = state.num_pieces.pop(-1)
         row = (piece - 1) // state.board.dim
         column = (piece - 1) % state.board.dim
         
         valid_actions = []
         piece_on_board = state.board.get_value(row, column)
         for rotation in range(4):
-            # rotation -= 1 # demora muito depois
+            rotation += 2 # demora muito depois
             rotated_piece = self.rotate_piece(piece_on_board, rotation)
             if self.correct_pos(state.board, row, column, rotated_piece):
                 valid_actions.append((row, column, rotation))
@@ -226,13 +244,13 @@ class PipeMania(Problem):
     def rotate_piece(self, piece: str, rotation: int) -> str:
         """Rotate a piece by the specified number of clockwise rotations."""
         if piece in final:
-            return final[(final.index(piece) - rotation) % 4]
+            return final[(final.index(piece) + rotation) % 4]
         elif piece in bif:
-            return bif[(bif.index(piece) - rotation) % 4]
+            return bif[(bif.index(piece) + rotation) % 4]
         elif piece in volta:
-            return volta[(volta.index(piece) - rotation) % 4]
+            return volta[(volta.index(piece) + rotation) % 4]
         elif piece in lig:
-            return lig[(lig.index(piece) - rotation) % 2]
+            return lig[(lig.index(piece) + rotation) % 2]
         else:
             return piece
 
@@ -249,16 +267,16 @@ class PipeMania(Problem):
         piece = statee.board.get_value(pos_x,pos_y)
         if piece in final:
             position = final.index(piece)
-            statee.board.set_value(pos_x,pos_y,final[(position - rotation ) % 4])
+            statee.board.set_value(pos_x,pos_y,final[(position + rotation ) % 4])
         elif piece in bif:
             position = bif.index(piece)
-            statee.board.set_value(pos_x,pos_y,bif[(position - rotation) % 4])
+            statee.board.set_value(pos_x,pos_y,bif[(position + rotation) % 4])
         elif piece in volta:
             position = volta.index(piece)
-            statee.board.set_value(pos_x,pos_y,volta[(position - rotation) % 4])
+            statee.board.set_value(pos_x,pos_y,volta[(position + rotation) % 4])
         elif piece in lig:
             position = lig.index(piece)
-            statee.board.set_value(pos_x,pos_y,lig[(position - rotation) % 2])
+            statee.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
         return statee
     
     def search(self, state: PipeManiaState):
@@ -305,6 +323,7 @@ class PipeMania(Problem):
         return node.state.board.correct_pos()
 
     def primeira_procura(self):
+        #TODO: pop se mexer
         dim = self.initial.board.dim
         for i in range(dim):
             for j in range(dim):
@@ -370,5 +389,5 @@ if __name__ == "__main__":
 
     end_time = time.time()
     end_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Retrieve end_memory using psutil
-    print(f"Execution time: {end_time - start_time} seconds")
-    print(f"Memory usage: {end_memory - start_memory} MB")
+    # print(f"Execution time: {end_time - start_time} seconds")
+    # print(f"Memory usage: {end_memory - start_memory} MB")
