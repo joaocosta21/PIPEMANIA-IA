@@ -1,6 +1,12 @@
 # 00000 Nome1
 # 00000 Nome2
 
+import time
+import psutil
+
+start_time = time.time()
+start_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Initialize start_memory using psutil
+
 import copy as copy
 import sys
 from search import (
@@ -162,11 +168,7 @@ class Board:
                         (right is not None and PIECE[piece].connections['right'] == PIECE[right].connections['left'])
 
         # Check if all conditions are met
-        if up_condition and down_condition and left_condition and right_condition:
-            return True
-        else:
-            return False
-
+        return up_condition and down_condition and left_condition and right_condition
 
 
 class PipeMania(Problem):
@@ -177,6 +179,7 @@ class PipeMania(Problem):
     def correct_pos(self, board: Board, row: int, column: int, piece: str) -> bool:
         """Check if the piece at the given position is in a correct position."""
         # Get adjacent pieces for the current position
+        
         up, down = board.adjacent_vertical_values(row, column)
         left, right = board.adjacent_horizontal_values(row, column)
         
@@ -219,8 +222,6 @@ class PipeMania(Problem):
         if state.num_pieces == []:
             return []
         
-        #TODO: ver pq e que 225 nao da
-        
         piece = state.num_pieces.pop(-1)
         row = (piece - 1) // state.board.dim
         column = (piece - 1) % state.board.dim
@@ -249,35 +250,17 @@ class PipeMania(Problem):
             return piece
 
     def result(self, state: PipeManiaState, action):
-        """Retorna o estado resultante de executar a 'action' sobre
-        'state' passado como argumento. A ação a executar deve ser uma
-        das presentes na lista obtida pela execução de
-        self.actions(state)."""
-        
-        statee = copy.deepcopy(state)
-        
-        pos_x, pos_y, rotation = action
-        
-        piece = statee.board.get_value(pos_x,pos_y)
-        if piece in final:
-            position = final.index(piece)
-            statee.board.set_value(pos_x,pos_y,final[(position + rotation ) % 4])
-        elif piece in bif:
-            position = bif.index(piece)
-            statee.board.set_value(pos_x,pos_y,bif[(position + rotation) % 4])
-        elif piece in volta:
-            position = volta.index(piece)
-            statee.board.set_value(pos_x,pos_y,volta[(position + rotation) % 4])
-        elif piece in lig:
-            position = lig.index(piece)
-            statee.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
-        return statee
+        new_state = copy.deepcopy(state)
+        row, col, rotation = action
+        piece = new_state.board.get_value(row, col)
+        new_state.board.set_value(row, col, self.rotate_piece(piece, rotation))
+        return new_state
 
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
-        if state.num_pieces != []:
+        if state.num_pieces:
             return False
         # if state.board.correct_pos() == state.board.dim**2:
         #     return self.search(state)
@@ -289,48 +272,52 @@ class PipeMania(Problem):
         return node.state.board.correct_pos()
 
     def primeira_procura(self):
-        #TODO: pop se mexer
         dim = self.initial.board.dim
         for i in range(dim):
             for j in range(dim):
                 piece = self.initial.board.get_value(i, j)
-                # Set initial pieces based on their positions
                 if i == 0:
-                    if j == 0:
-                        if piece[0] == "V":
-                            self.initial.board.set_value(i, j, "VB")
-                    elif j == dim - 1:
-                        if piece[0] == "V":
-                            self.initial.board.set_value(i, j, "VE")
-                    else:
-                        if piece[0] == "B":
-                            self.initial.board.set_value(i, j, "BB")
-                        elif piece[0] == "L":
-                            self.initial.board.set_value(i, j, "LH")
+                    if j == 0 and piece[0] == "V":
+                        self.initial.board.set_value(i, j, "VB")
+                        self.initial.num_pieces.remove(1)
+                    elif j == dim - 1 and piece[0] == "V":
+                        self.initial.board.set_value(i, j, "VE")
+                        self.initial.num_pieces.remove(dim)
+                    elif piece[0] == "B":
+                        self.initial.board.set_value(i, j, "BB")
+                        self.initial.num_pieces.remove(j + 1)
+                    elif piece[0] == "L":
+                        self.initial.board.set_value(i, j, "LH")
+                        self.initial.num_pieces.remove(j + 1)
                 elif i == dim - 1:
-                    if j == 0:
-                        if piece[0] == "V":
-                            self.initial.board.set_value(i, j, "VD")
-                    elif j == dim - 1:
-                        if piece[0] == "V":
-                            self.initial.board.set_value(i, j, "VC")
-                    else:
-                        if piece[0] == "B":
-                            self.initial.board.set_value(i, j, "BC")
-                        elif piece[0] == "L":
-                            self.initial.board.set_value(i, j, "LH")
-                else:
-                    if j == 0:
-                        if piece[0] == "B":
-                            self.initial.board.set_value(i, j, "BD")
-                        elif piece[0] == "L":
-                            self.initial.board.set_value(i, j, "LV")
-                    elif j == dim - 1:
-                        if piece[0] == "B":
-                            self.initial.board.set_value(i, j, "BE")
-                        elif piece[0] == "L":
-                            self.initial.board.set_value(i, j, "LV")
+                    if j == 0 and piece[0] == "V":
+                        self.initial.board.set_value(i, j, "VD")
+                        self.initial.num_pieces.remove(dim * (dim - 1) + 1)
+                    elif j == dim - 1 and piece[0] == "V":
+                        self.initial.board.set_value(i, j, "VC")
+                        self.initial.num_pieces.remove(dim * dim)
+                    elif piece[0] == "B":
+                        self.initial.board.set_value(i, j, "BC")
+                        self.initial.num_pieces.remove(dim * (dim - 1) + j + 1)
+                    elif piece[0] == "L":
+                        self.initial.board.set_value(i, j, "LH")
+                        self.initial.num_pieces.remove(dim * (dim - 1) + j + 1)
+                elif j == 0:
+                    if piece[0] == "B":
+                        self.initial.board.set_value(i, j, "BD")
+                        self.initial.num_pieces.remove(i * dim + 1)
+                    elif piece[0] == "L":
+                        self.initial.board.set_value(i, j, "LV")
+                        self.initial.num_pieces.remove(i * dim + 1)
+                elif j == dim - 1:
+                    if piece[0] == "B":
+                        self.initial.board.set_value(i, j, "BE")
+                        self.initial.num_pieces.remove(i * dim + dim)
+                    elif piece[0] == "L":
+                        self.initial.board.set_value(i, j, "LV")
+                        self.initial.num_pieces.remove(i * dim + dim)
         return self
+
 
 if __name__ == "__main__":
     # TODO:
@@ -344,7 +331,7 @@ if __name__ == "__main__":
     # Create a PipeMania instance with the initial state and goal board
     pipemania = PipeMania(initial_board)
     
-    pipemania = pipemania.primeira_procura() #nao poupa quase tempo nenhum
+    # pipemania = pipemania.primeira_procura() #nao poupa quase tempo nenhum
     
     solution_node = depth_first_tree_search(pipemania)
     
@@ -352,3 +339,8 @@ if __name__ == "__main__":
     
     for row in solution:
         print('\t'.join(row))
+
+    end_time = time.time()
+    end_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Retrieve end_memory using psutil
+    print(f"Execution time: {end_time - start_time} seconds")
+    print(f"Memory usage: {end_memory - start_memory} MB")
