@@ -269,7 +269,7 @@ class PipeMania(Problem):
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
-        return node.state.board.correct_pos()
+        return 20 - node.state.board.correct_pos()
 
     def primeira_procura(self):
         dim = self.initial.board.dim
@@ -333,7 +333,7 @@ if __name__ == "__main__":
     
     # pipemania = pipemania.primeira_procura() #nao poupa quase tempo nenhum
     
-    solution_node = depth_first_tree_search(pipemania)
+    solution_node = greedy_search(pipemania, pipemania.h)
     
     solution = solution_node.state.board.grid
     
