@@ -50,23 +50,23 @@ PIECE = {
 }
 
 def generate_spiral_indices(n):
-    """Generate indices for an n x n matrix in spiral order."""
+    """Generate indices for an n x n matrix in spiral order starting from 0."""
     indices = []
     left, right, top, bottom = 0, n - 1, 0, n - 1
     while left <= right and top <= bottom:
         for col in range(left, right + 1):
-            indices.append(top * n + col + 1)
+            indices.append(top * n + col)
         top += 1
         for row in range(top, bottom + 1):
-            indices.append(row * n + right + 1)
+            indices.append(row * n + right)
         right -= 1
         if top <= bottom:
             for col in range(right, left - 1, -1):
-                indices.append(bottom * n + col + 1)
+                indices.append(bottom * n + col)
             bottom -= 1
         if left <= right:
             for row in range(bottom, top - 1, -1):
-                indices.append(row * n + left + 1)
+                indices.append(row * n + left)
             left += 1
     return indices
 
@@ -196,28 +196,35 @@ class PipeMania(Problem):
         """O construtor especifica o estado inicial."""
         self.initial = PipeManiaState(board)
         
-    def correct_pos(self, board: Board, row: int, column: int, piece: str) -> bool:
+    def correct_pos(self, board, row: int, column: int, piece: str, replaced_indices) -> bool:
         """Check if the piece at the given position is in a correct position."""
         # Get adjacent pieces for the current position
         
         up, down = board.adjacent_vertical_values(row, column)
         left, right = board.adjacent_horizontal_values(row, column)
         
-        up_condition = True
-        left_condition = True
+        up_condition = down_condition = left_condition = right_condition = True
         
         if row == 0:
             up_condition = (up is None and not PIECE[piece].connections['top'])
         elif row * board.dim + column - board.dim not in replaced_indices:
-            up_condition = PIECE[piece].connections['bottom'] == PIECE[down].connections['top']
+            up_condition = PIECE[piece].connections['top'] == PIECE[up].connections['bottom']
         
-        down_condition = (down is not None and PIECE[piece].connections['bottom'] == PIECE[down].connections['top']) or (down is None and not PIECE[piece].connections['bottom'])
-        if row == 0:
-            up_condition = (up is None and not PIECE[piece].connections['top'])
-        right_condition = (right is not None and PIECE[piece].connections['right'] == PIECE[right].connections['left']) or (right is None and not PIECE[piece].connections['right'])
         if column == 0:
             left_condition = not (PIECE[piece].connections['left'])
+        elif row * board.dim + column - 1 not in replaced_indices:
+            left_condition = PIECE[piece].connections['left'] == PIECE[left].connections['right']
             
+        if row == board.dim - 1:
+            down_condition = (down is None and not PIECE[piece].connections['bottom'])
+        elif row * board.dim + column + board.dim not in replaced_indices:
+            down_condition = PIECE[piece].connections['bottom'] == PIECE[down].connections['top']
+            
+        if column == board.dim - 1:
+            right_condition = not (PIECE[piece].connections['right'])
+        elif row * board.dim + column + 1 not in replaced_indices:
+            right_condition = PIECE[piece].connections['right'] == PIECE[right].connections['left']
+        
         # Check if all conditions are met
         if up_condition and down_condition and left_condition and right_condition:
             return True
@@ -230,17 +237,20 @@ class PipeMania(Problem):
         partir do estado passado como argumento."""
         if state.num_pieces == []:
             return []
+                
+        piece = state.num_pieces.pop(0)
         
-        piece = state.num_pieces.pop(-1)
-        row = (piece - 1) // state.board.dim
-        column = (piece - 1) % state.board.dim
+        pieces_moved = state.num_pieces.copy()
+        
+        row = (piece) // state.board.dim
+        column = (piece) % state.board.dim
         
         valid_actions = []
         piece_on_board = state.board.get_value(row, column)
         for rotation in range(4):
-            # rotation += 2 # demora muito depois
+            rotation += 2 # demora muito 
             rotated_piece = self.rotate_piece(piece_on_board, rotation)
-            if self.correct_pos(state.board, row, column, rotated_piece):
+            if self.correct_pos(state.board, row, column, rotated_piece, pieces_moved):
                 valid_actions.append((row, column, rotation))
                 
         return valid_actions
@@ -351,5 +361,5 @@ if __name__ == "__main__":
 
     end_time = time.time()
     end_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Retrieve end_memory using psutil
-    print(f"Execution time: {end_time - start_time} seconds")
-    print(f"Memory usage: {end_memory - start_memory} MB")
+    # print(f"Execution time: {end_time - start_time} seconds")
+    # print(f"Memory usage: {end_memory - start_memory} MB")
