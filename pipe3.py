@@ -342,5 +342,5 @@ if __name__ == "__main__":
 
     end_time = time.time()
     end_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Retrieve end_memory using psutil
-    print(f"Execution time: {end_time - start_time} seconds")
-    print(f"Memory usage: {end_memory - start_memory} MB")
+    # print(f"Execution time: {end_time - start_time} seconds")
+    # print(f"Memory usage: {end_memory - start_memory} MB")

@@ -360,9 +360,9 @@ if __name__ == "__main__":
     # Create a PipeMania instance with the initial state and goal board
     pipemania = PipeMania(initial_board)
     
-    pipemania = pipemania.primeira_procura() #nao poupa quase tempo nenhum
+    # pipemania = pipemania.primeira_procura() #nao poupa quase tempo nenhum
     
-    solution_node = depth_first_tree_search(pipemania)
+    solution_node = greedy_search(pipemania, pipemania.h)
     
     solution = solution_node.state.board.grid
     

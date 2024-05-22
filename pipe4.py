@@ -240,17 +240,15 @@ class PipeMania(Problem):
                 
         piece = state.num_pieces.pop(0)
         
-        pieces_moved = state.num_pieces.copy()
-        
         row = (piece) // state.board.dim
         column = (piece) % state.board.dim
         
         valid_actions = []
         piece_on_board = state.board.get_value(row, column)
         for rotation in range(4):
-            rotation += 2 # demora muito 
+            # rotation += 2 # demora muito 
             rotated_piece = self.rotate_piece(piece_on_board, rotation)
-            if self.correct_pos(state.board, row, column, rotated_piece, pieces_moved):
+            if self.correct_pos(state.board, row, column, rotated_piece, state.num_pieces):
                 valid_actions.append((row, column, rotation))
                 
         return valid_actions
@@ -298,10 +296,10 @@ class PipeMania(Problem):
                 if i == 0:
                     if j == 0 and piece[0] == "V":
                         self.initial.board.set_value(i, j, "VB")
-                        self.initial.num_pieces.remove(1)
+                        self.initial.num_pieces.remove(0)
                     elif j == dim - 1 and piece[0] == "V":
                         self.initial.board.set_value(i, j, "VE")
-                        self.initial.num_pieces.remove(dim)
+                        self.initial.num_pieces.remove(dim -1)
                     elif piece[0] == "B":
                         self.initial.board.set_value(i, j, "BB")
                         self.initial.num_pieces.remove(j + 1)
