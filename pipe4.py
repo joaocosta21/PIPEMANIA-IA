@@ -299,20 +299,10 @@ class PipeMania(Problem):
 
     # TO-DO: MUDAR SE PROCURA E INFERÊNCIA FOREM IMPLEMENTADOS
     def result(self, state: PipeManiaState, action):
-        #new_state = copy.deepcopy(state)
-        #new_state.board.set_value(row, col, self.rotate_piece(piece,row,col,rotation))
-
-        new_board = copy.copy(state.board.grid)
-        board = Board(new_board)
-
+        new_state = copy.deepcopy(state)
         row, col, rotation = action
-        piece = board.get_value(row, col)
-        new_piece = self.rotate_piece(piece, row,col,rotation)
-        board.set_value(row,col,new_piece)
-
-
-        new_state = PipeManiaState(board)
-        new_state.num_pieces = state.num_pieces.copy()
+        piece = new_state.board.get_value(row, col)
+        new_state.board.set_value(row, col, self.rotate_piece(piece,row,col,rotation))
         return new_state
 
     def goal_test(self, state: PipeManiaState):
