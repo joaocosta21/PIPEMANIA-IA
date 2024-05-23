@@ -124,6 +124,8 @@ class Board:
                 # Check if the piece is correct
                 if Board.is_piece_correct(piece, up, down, left, right):
                     count += 1
+                else:
+                    return count
         return count
 
     @staticmethod
@@ -206,7 +208,7 @@ class PipeMania(Problem):
         elif piece in volta:
             return volta[(volta.index(piece) + rotation) % 4]
         elif piece in lig:
-                        return lig[(lig.index(piece) + rotation) % 2]
+            return lig[(lig.index(piece) + rotation) % 2]
         else:
             return piece
 
@@ -262,6 +264,8 @@ class PipeMania(Problem):
         # Check if all pieces are correctly placed
         if state.board.correct_pos() != state.board.dim**2:
             return False
+        print(state.board.grid)
+        print("ghghjghjghjbbbhj")
         
         if not PipeMania.is_connected(state.board):
             return False
