@@ -178,15 +178,31 @@ class PipeMania(Problem):
         up, down = board.adjacent_vertical_values(row, column)
         left, right = board.adjacent_horizontal_values(row, column)
         
-        up_condition = True
-        left_condition = True
+        # up_condition = True
+        # left_condition = True
         
-        down_condition = (down is not None and PIECE[piece].connections['bottom'] == PIECE[down].connections['top']) or (down is None and not PIECE[piece].connections['bottom'])
-        if row == 0:
-            up_condition = not (PIECE[piece].connections['top'])
-        right_condition = (right is not None and PIECE[piece].connections['right'] == PIECE[right].connections['left']) or (right is None and not PIECE[piece].connections['right'])
-        if column == 0:
-            left_condition = not (PIECE[piece].connections['left'])
+        # down_condition = (down is not None and PIECE[piece].connections['bottom'] == PIECE[down].connections['top']) or (down is None and not PIECE[piece].connections['bottom'])
+        # if row == 0:
+        #     up_condition = not (PIECE[piece].connections['top'])
+        # right_condition = (right is not None and PIECE[piece].connections['right'] == PIECE[right].connections['left']) or (right is None and not PIECE[piece].connections['right'])
+        # if column == 0:
+        #     left_condition = not (PIECE[piece].connections['left'])
+            
+        # # Check if all conditions are met
+        # if up_condition and down_condition and left_condition and right_condition:
+        #     return True
+        # else:
+        #     return False
+        
+        down_condition = True
+        right_condition = True
+        
+        up_condition = (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom']) or (up is None and not PIECE[piece].connections['top'])
+        if row == board.dim - 1:
+            down_condition = not (PIECE[piece].connections['bottom'])
+        left_condition = (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right']) or (left is None and not PIECE[piece].connections['left'])
+        if column == board.dim - 1:
+            right_condition = not (PIECE[piece].connections['right'])
             
         # Check if all conditions are met
         if up_condition and down_condition and left_condition and right_condition:
@@ -200,14 +216,14 @@ class PipeMania(Problem):
         if state.num_pieces == []:
             return []
         
-        piece = state.num_pieces.pop(-1)
+        piece = state.num_pieces.pop(0)
         row = (piece - 1) // state.board.dim
         column = (piece - 1) % state.board.dim
         
         valid_actions = []
         piece_on_board = state.board.get_value(row, column)
         for rotation in range(4):
-            rotation += 2  # demora muito depois
+            # rotation += 2  # demora muito depois
             rotated_piece = self.rotate_piece(piece_on_board, rotation)
             if self.correct_pos(state.board, row, column, rotated_piece):
                 valid_actions.append((row, column, rotation))
@@ -242,6 +258,37 @@ class PipeMania(Problem):
         new_piece = self.rotate_piece(piece, rotation)
         statee.board.set_value(pos_x, pos_y, new_piece)
         return statee
+    
+    def is_connected(board: Board) -> bool:
+            dim = board.dim
+            visited = set()
+            queue = [(0, 0)]  # Start BFS from the top-left corner
+            
+            while queue:
+                x, y = queue.pop(0)
+                if (x, y) in visited:
+                    continue
+
+                visited.add((x, y))
+                piece = board.get_value(x, y)
+                up, down = board.adjacent_vertical_values(x, y)
+                left, right = board.adjacent_horizontal_values(x, y)
+
+                if up is not None and PIECE[piece].connections['top'] and PIECE[up].connections['bottom']:
+                    if (x-1, y) not in visited:
+                        queue.append((x-1, y))
+                if down is not None and PIECE[piece].connections['bottom'] and PIECE[down].connections['top']:
+                    if (x+1, y) not in visited:
+                        queue.append((x+1, y))
+                if left is not None and PIECE[piece].connections['left'] and PIECE[left].connections['right']:
+                    if (x, y-1) not in visited:
+                        queue.append((x, y-1))
+                if right is not None and PIECE[piece].connections['right'] and PIECE[right].connections['left']:
+                    if (x, y+1) not in visited:
+                        queue.append((x, y+1))
+            
+            # Check if all cells are visited
+            return len(visited) == dim ** 2
 
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
@@ -249,7 +296,13 @@ class PipeMania(Problem):
         estão preenchidas de acordo com as regras do problema."""
         if state.num_pieces:
             return False
-        return state.board.correct_pos() == state.board.dim**2
+        # Check if all pieces are correctly placed
+        if state.board.correct_pos() != state.board.dim**2:
+            return False
+        
+        if not PipeMania.is_connected(state.board):
+            return False
+        return True
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -316,7 +369,7 @@ if __name__ == "__main__":
     # Create a PipeMania instance with the initial state and goal board
     pipemania = PipeMania(initial_board)
     
-    # pipemania = pipemania.primeira_procura() #nao poupa quase tempo nenhum
+    pipemania = pipemania.primeira_procura() #nao poupa quase tempo nenhum
     
     solution_node = depth_first_tree_search(pipemania)
     
