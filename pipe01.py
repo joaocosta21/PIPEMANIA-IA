@@ -216,14 +216,15 @@ class PipeMania(Problem):
         das presentes na lista obtida pela execução de
         self.actions(state)."""
         
-        new_board = copy.deepcopy(state.board)  # Only copy the board
+        new_board = copy.copy(state.board.grid)  # Only copy the board
+        board = Board(new_board)
         pos_x, pos_y, rotation = action
         
-        piece = new_board.get_value(pos_x, pos_y)
+        piece = board.get_value(pos_x, pos_y)
         new_piece = self.rotate_piece(piece, rotation)
-        new_board.set_value(pos_x, pos_y, new_piece)
+        board.set_value(pos_x, pos_y, new_piece)
         
-        new_state = PipeManiaState(new_board)
+        new_state = PipeManiaState(board)
         new_state.num_pieces = state.num_pieces.copy()  # Copy the list of remaining pieces
         return new_state
     
