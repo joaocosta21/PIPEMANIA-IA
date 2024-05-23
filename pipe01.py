@@ -1,14 +1,12 @@
-# 00000 Nome1
-# 00000 Nome2
-
 import time
 import psutil
+import numpy as np
+import copy
+import sys
 
 start_time = time.time()
 start_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Initialize start_memory using psutil
 
-import copy as copy
-import sys
 from search import (
     Problem,
     Node,
@@ -19,81 +17,72 @@ from search import (
     recursive_best_first_search,
 )
 
-class Pipe:
-    def __init__(self, top=False, right=False, bottom=False, left=False):
-        self.connections = {'top': top, 'right': right, 'bottom': bottom, 'left': left}
-
-    def __str__(self):
-        return str(self.connections)
-
-
-final = ["FC","FD","FB","FE"]
-bif = ["BC","BD","BB","BE"]
-volta = ["VC","VD","VB","VE"]
-lig = ["LH","LV"]
-
+# Each piece is represented as an array of booleans: [top, right, bottom, left]
 PIECE = {
-    "FC": Pipe(top = True),
-    "FD": Pipe(right = True),
-    "FB": Pipe(bottom = True),
-    "FE": Pipe(left = True),
-    "BC": Pipe(left = True, top = True, right = True),
-    "BD": Pipe(right = True, bottom = True, top = True),
-    "BB": Pipe(bottom = True, left = True, right = True),
-    "BE": Pipe(left = True, top = True, bottom = True),
-    "VC": Pipe(left = True, top = True),
-    "VD": Pipe(right = True, top = True),
-    "VB": Pipe(bottom = True, right = True),
-    "VE": Pipe(left = True, bottom = True),
-    "LH": Pipe(left = True, right = True),
-    "LV": Pipe(top = True, bottom = True)
+    "FC": [True, False, False, False],
+    "FD": [False, True, False, False],
+    "FB": [False, False, True, False],
+    "FE": [False, False, False, True],
+    "BC": [True, True, False, True],
+    "BD": [True, True, True, False],
+    "BB": [False, True, True, True],
+    "BE": [True, False, True, True],
+    "VC": [True, False, False, True],
+    "VD": [True, True, False, False],
+    "VB": [False, True, True, False],
+    "VE": [False, False, True, True],
+    "LH": [False, True, False, True],
+    "LV": [True, False, True, False],
 }
 
+final = ["FC", "FD", "FB", "FE"]
+bif = ["BC", "BD", "BB", "BE"]
+volta = ["VC", "VD", "VB", "VE"]
+lig = ["LH", "LV"]
 
 class PipeManiaState:
     state_id = 0
 
     def __init__(self, board):
         self.board = board
-        self.num_pieces = [ i for i in range(1, board.dim**2+1)]
+        self.num_pieces = [i for i in range(1, board.dim**2 + 1)]
         self.id = PipeManiaState.state_id
         PipeManiaState.state_id += 1
 
     def __lt__(self, other):
         return self.id < other.id
 
-
 class Board:
     """Representação interna de um tabuleiro de PipeMania."""
     def __init__(self, grid) -> None:
-        self.grid = grid
-        self.dim = len(grid) # dimensão do tabuleiro
+        self.grid = np.array(grid)
+        self.dim = len(grid)  # dimensão do tabuleiro
         
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        return self.grid[row][col] 
+        return self.grid[row, col]
     
     def set_value(self, row: int, col: int, value: str) -> None:
         """Atribui o valor na respetiva posição do tabuleiro."""
-        self.grid[row][col] = value
+        self.grid[row, col] = value
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
         respectivamente."""
         if row == 0:
-            return (None, self.grid[row+1][col])
+            return (None, self.grid[row+1, col])
         if row == self.dim - 1:
-            return (self.grid[row-1][col], None)
-        return (self.grid[row-1][col], self.grid[row+1][col])
+            return (self.grid[row-1, col], None)
+        return (self.grid[row-1, col], self.grid[row+1, col])
 
     def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
         if col == 0:
-            return (None, self.grid[row][col+1])
+            return (None, self.grid[row, col+1])
         if col == self.dim - 1:
-            return (self.grid[row][col-1], None)
-        return (self.grid[row][col-1], self.grid[row][col+1])
+            return (self.grid[row, col-1], None)
+        return (self.grid[row, col-1], self.grid[row, col+1])
     
     def print(self):
         """ Imprime o estado atual da grelha interna """
@@ -124,7 +113,6 @@ class Board:
 
     def correct_pos(self):
         count = 0
-        # break_flag = False
         for i in range(self.dim):
             for j in range(self.dim):
                 piece = self.get_value(i, j)
@@ -136,13 +124,11 @@ class Board:
                 # Check if the piece is correct
                 if Board.is_piece_correct(piece, up, down, left, right):
                     count += 1
-            #     else:
-            #         break_flag = True
-            #         break  # Break out of inner loop
-            # if break_flag:
-            #     break
+                else:
+                    return count
         return count
 
+    @staticmethod
     def is_piece_correct(piece, up, down, left, right):
         """
         Check if a single piece is correctly connected with its adjacent pieces.
@@ -158,22 +144,17 @@ class Board:
             True if the piece is correctly connected, False otherwise.
         """
         # Check connection conditions
-        up_condition = (up is None and not PIECE[piece].connections['top']) or \
-                    (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom'])
-        down_condition = (down is None and not PIECE[piece].connections['bottom']) or \
-                        (down is not None and PIECE[piece].connections['bottom'] == PIECE[down].connections['top'])
-        left_condition = (left is None and not PIECE[piece].connections['left']) or \
-                        (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right'])
-        right_condition = (right is None and not PIECE[piece].connections['right']) or \
-                        (right is not None and PIECE[piece].connections['right'] == PIECE[right].connections['left'])
+        up_condition = (up is None and not PIECE[piece][0]) or \
+                       (up is not None and PIECE[piece][0] == PIECE[up][2])
+        down_condition = (down is None and not PIECE[piece][2]) or \
+                         (down is not None and PIECE[piece][2] == PIECE[down][0])
+        left_condition = (left is None and not PIECE[piece][3]) or \
+                         (left is not None and PIECE[piece][3] == PIECE[left][1])
+        right_condition = (right is None and not PIECE[piece][1]) or \
+                          (right is not None and PIECE[piece][1] == PIECE[right][3])
 
         # Check if all conditions are met
-        if up_condition and down_condition and left_condition and right_condition:
-            return True
-        else:
-            return False
-
-
+        return up_condition and down_condition and left_condition and right_condition
 
 class PipeMania(Problem):
     def __init__(self, board: Board):
@@ -186,38 +167,18 @@ class PipeMania(Problem):
         up, down = board.adjacent_vertical_values(row, column)
         left, right = board.adjacent_horizontal_values(row, column)
         
-        up_condition = True
-        left_condition = True
+        down_condition = True
+        right_condition = True
         
-        down_condition = (down is not None and PIECE[piece].connections['bottom'] == PIECE[down].connections['top']) or (down is None and not PIECE[piece].connections['bottom'])
-        if row == 0:
-            up_condition = not (PIECE[piece].connections['top'])
-        right_condition = (right is not None and PIECE[piece].connections['right'] == PIECE[right].connections['left']) or (right is None and not PIECE[piece].connections['right'])
-        if column == 0:
-            left_condition = not (PIECE[piece].connections['left'])
+        up_condition = (up is not None and PIECE[piece][0] == PIECE[up][2]) or (up is None and not PIECE[piece][0])
+        if row == board.dim - 1:
+            down_condition = not (PIECE[piece][2])
+        left_condition = (left is not None and PIECE[piece][3] == PIECE[left][1]) or (left is None and not PIECE[piece][3])
+        if column == board.dim - 1:
+            right_condition = not (PIECE[piece][1])
             
         # Check if all conditions are met
-        if up_condition and down_condition and left_condition and right_condition:
-            return True
-        else:
-            return False
-        
-        # down_condition = True
-        # right_condition = True
-        
-        # up_condition = (up is not None and PIECE[piece].connections['top'] == PIECE[up].connections['bottom']) or (up is None and not PIECE[piece].connections['top'])
-        # if row == board.dim - 1:
-        #     down_condition = not (PIECE[piece].connections['bottom'])
-        # left_condition = (left is not None and PIECE[piece].connections['left'] == PIECE[left].connections['right']) or (left is None and not PIECE[piece].connections['left'])
-        # if column == board.dim - 1:
-        #     right_condition = not (PIECE[piece].connections['right'])
-            
-        # # Check if all conditions are met
-        # if up_condition and down_condition and left_condition and right_condition:
-        #     return True
-        # else:
-        #     return False
-        
+        return up_condition and down_condition and left_condition and right_condition
 
     def actions(self, state: PipeManiaState):
         """Retorna uma lista de ações que podem ser executadas a
@@ -225,14 +186,13 @@ class PipeMania(Problem):
         if state.num_pieces == []:
             return []
         
-        piece = state.num_pieces.pop(-1)
+        piece = state.num_pieces.pop(0)
         row = (piece - 1) // state.board.dim
         column = (piece - 1) % state.board.dim
         
         valid_actions = []
         piece_on_board = state.board.get_value(row, column)
         for rotation in range(4):
-            rotation += 2 # demora muito depois
             rotated_piece = self.rotate_piece(piece_on_board, rotation)
             if self.correct_pos(state.board, row, column, rotated_piece):
                 valid_actions.append((row, column, rotation))
@@ -258,42 +218,64 @@ class PipeMania(Problem):
         das presentes na lista obtida pela execução de
         self.actions(state)."""
         
-        statee = copy.deepcopy(state)
-        
+        new_board = copy.copy(state.board.grid)  # Only copy the board
+        board = Board(new_board)
         pos_x, pos_y, rotation = action
         
-        piece = statee.board.get_value(pos_x,pos_y)
-        if piece in final:
-            position = final.index(piece)
-            statee.board.set_value(pos_x,pos_y,final[(position + rotation ) % 4])
-        elif piece in bif:
-            position = bif.index(piece)
-            statee.board.set_value(pos_x,pos_y,bif[(position + rotation) % 4])
-        elif piece in volta:
-            position = volta.index(piece)
-            statee.board.set_value(pos_x,pos_y,volta[(position + rotation) % 4])
-        elif piece in lig:
-            position = lig.index(piece)
-            statee.board.set_value(pos_x,pos_y,lig[(position + rotation) % 2])
-        return statee
+        piece = board.get_value(pos_x, pos_y)
+        new_piece = self.rotate_piece(piece, rotation)
+        board.set_value(pos_x, pos_y, new_piece)
+        
+        new_state = PipeManiaState(board)
+        new_state.num_pieces = state.num_pieces.copy()  # Copy the list of remaining pieces
+        return new_state
+    
+    def is_connected(board: Board) -> bool:
+        dim = board.dim
+        visited = set()
+        queue = [(0, 0)]  # Start BFS from the top-left corner
+
+        while queue:
+            x, y = queue.pop(0)
+            if (x, y) in visited:
+                continue
+
+            visited.add((x, y))
+            piece = board.get_value(x, y)
+
+            if PIECE[piece][0] and x > 0:
+                queue.append((x-1, y))
+            if PIECE[piece][2] and x < dim - 1:
+                queue.append((x+1, y))
+            if PIECE[piece][3] and y > 0:
+                queue.append((x, y-1))
+            if PIECE[piece][1] and y < dim - 1:
+                queue.append((x, y+1))
+
+        # Check if all cells are visited
+        return len(visited) == dim ** 2
 
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
-        if state.num_pieces != []:
+        if state.num_pieces:
             return False
-        # if state.board.correct_pos() == state.board.dim**2:
-        #     return self.search(state)
-        return state.board.correct_pos() == state.board.dim**2
-            
+        # Check if all pieces are correctly placed
+        if state.board.correct_pos() != state.board.dim**2:
+            return False
+        print(state.board.grid)
+        print("ghghjghjghjbbbhj")
+        
+        if not PipeMania.is_connected(state.board):
+            return False
+        return True
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
         return node.state.board.correct_pos()
 
     def primeira_procura(self):
-        #TODO: pop se mexer
         dim = self.initial.board.dim
         for i in range(dim):
             for j in range(dim):
@@ -349,12 +331,6 @@ class PipeMania(Problem):
         return self
 
 if __name__ == "__main__":
-    # TODO:
-    # Ler o ficheiro do standard input,
-    # Usar uma técnica de procura para resolver a instância,
-    # Retirar a solução a partir do nó resultante,
-    # Imprimir para o standard output no formato indicado.
-    
     initial_board = Board.parse_instance()
     
     # Create a PipeMania instance with the initial state and goal board
@@ -362,7 +338,7 @@ if __name__ == "__main__":
     
     # pipemania = pipemania.primeira_procura() #nao poupa quase tempo nenhum
     
-    solution_node = greedy_search(pipemania, pipemania.h)
+    solution_node = depth_first_tree_search(pipemania)
     
     solution = solution_node.state.board.grid
     
@@ -373,3 +349,4 @@ if __name__ == "__main__":
     end_memory = psutil.Process().memory_info().rss / 1024 / 1024  # Retrieve end_memory using psutil
     # print(f"Execution time: {end_time - start_time} seconds")
     # print(f"Memory usage: {end_memory - start_memory} MB")
+
