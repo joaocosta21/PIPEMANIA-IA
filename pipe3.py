@@ -295,32 +295,56 @@ class PipeMania(Problem):
 
     # TO-DO: MUDAR SE PROCURA E INFERÊNCIA FOREM IMPLEMENTADOS
     def result(self, state: PipeManiaState, action):
-        new_board = copy.copy(state.board.grid)  # Only copy the board
-        board = Board(new_board)
-        pos_x, pos_y, rotation = action
-        
-        piece = board.get_value(pos_x, pos_y)
-        new_piece = self.rotate_piece(piece, pos_x, pos_y, rotation)
-        board.set_value(pos_x, pos_y, new_piece)
-        
-        new_state = PipeManiaState(board)
-        new_state.num_pieces = state.num_pieces.copy()  # Copy the list of remaining pieces
+        new_state = copy.deepcopy(state)
+        row, col, rotation = action
+        piece = new_state.board.get_value(row, col)
+        new_state.board.set_value(row, col, self.rotate_piece(piece,row,col,rotation))
         return new_state
 
+    def is_connected(board: Board) -> bool:
+        dim = board.dim
+        visited = set()
+        queue = [(0, 0)]  # Start BFS from the top-left corner
+
+        while queue:
+            x, y = queue.pop(0)
+            if (x, y) in visited:
+                continue
+
+            visited.add((x, y))
+            piece = board.get_value(x, y)
+
+            if PIECE[piece][0] and x > 0:
+                queue.append((x-1, y))
+            if PIECE[piece][2] and x < dim - 1:
+                queue.append((x+1, y))
+            if PIECE[piece][3] and y > 0:
+                queue.append((x, y-1))
+            if PIECE[piece][1] and y < dim - 1:
+                queue.append((x, y+1))
+
+        # Check if all cells are visited
+        return len(visited) == dim ** 2
+    
     def goal_test(self, state: PipeManiaState):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
         if state.num_pieces:
             return False
-        # if state.board.correct_pos() == state.board.dim**2:
-        #     return self.search(state)
-        return state.board.correct_pos() == state.board.dim**2
+        
+        if state.board.correct_pos() != state.board.dim**2:
+            return False
+        
+        state.board.print()
+        print("hgcvgjh")
+        if not PipeMania.is_connected(state.board):
+            return False
+        return True
 
-    
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
-        return node.state.board.correct_pos()
+        return 20 - node.state.board.correct_pos()
             
     def primeira_procura(self):
         dim = self.initial.board.dim
