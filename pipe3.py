@@ -249,7 +249,7 @@ class PipeMania(Problem):
         if state.num_pieces == []:
             return []
         
-        piece = state.num_pieces.pop(0)
+        piece = state.num_pieces[0]
         row = (piece - 1) // state.board.dim
         column = (piece - 1) % state.board.dim
         
@@ -262,19 +262,22 @@ class PipeMania(Problem):
         
         for rotation in range(4):
             # rotation += 1 # demora muito depois
-            rotated_piece = self.rotate_piece(piece_on_board,row,column, rotation)
+            rotated_piece = self.rotate_piece(piece_on_board,rotation)
 
-            '''
-            if rotated_piece not in self.domains[(row,column)]:
+            #if rotated_piece == piece_on_board:
+            #    continue
+
+            if rotated_piece not in self.domains[row*self.dim + column]:
                 continue
+            '''
             '''
 
             if self.correct_pos(state.board, row, column, rotated_piece):
                 valid_actions.append((row, column, rotation))
-                
+        
+        #print(piece_on_board, row, column)
         return valid_actions
 
-    '''
     # Continuar a usar se AC-3 não tempo o suficiente
     def rotate_piece(self, piece: str, rotation: int) -> str:
         """Rotate a piece by the specified number of clockwise rotations."""
@@ -289,16 +292,19 @@ class PipeMania(Problem):
         else:
             return piece
     '''
-
-    def rotate_piece(self, piece: str, row, col, rotation: int) -> str:
-        return self.domains[row*self.dim + col][(self.domains[row*self.dim + col].index(piece) + rotation) % len(self.domains[row*self.dim + col])]
+    '''
+    
+    #
+    #def rotate_piece(self, piece: str, row, col, rotation: int) -> str:
+    #    return self.domains[row*self.dim + col][(self.domains[row*self.dim + col].index(piece) + rotation) % len(self.domains[row*self.dim + col])]
 
     # TO-DO: MUDAR SE PROCURA E INFERÊNCIA FOREM IMPLEMENTADOS
     def result(self, state: PipeManiaState, action):
         new_state = copy.deepcopy(state)
         row, col, rotation = action
         piece = new_state.board.get_value(row, col)
-        new_state.board.set_value(row, col, self.rotate_piece(piece,row,col,rotation))
+        new_state.board.set_value(row, col, self.rotate_piece(piece,rotation))
+        new_state.num_pieces.pop(0)
         return new_state
 
     def is_connected(board: Board) -> bool:
@@ -336,15 +342,15 @@ class PipeMania(Problem):
         if state.board.correct_pos() != state.board.dim**2:
             return False
         
-        state.board.print()
-        print("hgcvgjh")
+        #state.board.print()
+        #print("hgcvgjh")
         if not PipeMania.is_connected(state.board):
             return False
         return True
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
-        return 20 - node.state.board.correct_pos()
+        return node.state.board.correct_pos()
             
     def primeira_procura(self):
         dim = self.initial.board.dim
@@ -441,11 +447,9 @@ class PipeMania(Problem):
         return self
 
     # Performs ac3 algorithm and deletes inconsistent piece values across the board
-    def ac3(self):
+    def ac3(self, queue):
         #breakpoint()
         # queue -> a queue of arcs between each positions
-        queue = self.arcs
-
         while queue:
             #breakpoint()
             constraint = queue.pop(0)
@@ -468,7 +472,7 @@ class PipeMania(Problem):
                             queue.append(((d_row+constraint[0][0],d_col+constraint[0][1]), constraint[0]))
                 
         return True
-                
+                          
     # Revises a constraint between two pieces, deleting values from the pieces domain's which do not satisfy the constraint
     def revise(self, constraint: tuple):
 
@@ -515,8 +519,6 @@ class PipeMania(Problem):
             else:
                 return not PIECE[possible_piece2][piece1_pos]   
 
-
-
 if __name__ == "__main__":
     # TODO:
     # Ler o ficheiro do standard input,
@@ -534,13 +536,15 @@ if __name__ == "__main__":
 
     #breakpoint()
 
-    pipemania.ac3()
+    pipemania.ac3(pipemania.arcs)
 
     #breakpoint()
     solution_node = depth_first_tree_search(pipemania)
     #solution_node = recursive_best_first_search(pipemania, pipemania.h)
     #solution_node = best_first_graph_search(pipemania, pipemania.h)
     #solution_node = greedy_search(pipemania, pipemania.h)
+
+    #solution_node = astar_search(pipemania,pipemania.h)
 
     solution = solution_node.state.board.grid
     
